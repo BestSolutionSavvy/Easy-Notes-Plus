@@ -10,15 +10,15 @@ export function calculateFitToContainerScale(
   basePageWidth: number,
   basePageHeight: number,
   containerWidthVw: number,
-  containerHeightVh: number
+  containerHeightVh: number,
 ): number {
-  if (basePageWidth === 0 || basePageHeight === 0) return 100;
-  
-  const containerWidth = window.innerWidth * (containerWidthVw / 100);
-  const containerHeight = window.innerHeight * (containerHeightVh / 100);
-  
-  const scaleX = (containerWidth / basePageWidth) * 100;
-  const scaleY = (containerHeight / basePageHeight) * 100;
-  
-  return Math.floor(Math.min(scaleX, scaleY));
+  if (basePageWidth === 0 || basePageHeight === 0) return 100
+
+  const containerWidth = window.innerWidth * (containerWidthVw / 100)
+  const containerHeight = window.innerHeight * (containerHeightVh / 100)
+
+  const scaleX = (containerWidth / basePageWidth) * 100
+  const scaleY = (containerHeight / basePageHeight) * 100
+
+  return Math.floor(Math.min(scaleX, scaleY))
 }

@@ -1,24 +1,24 @@
 <script setup lang="ts">
 interface Props {
-  content: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  scale: number;
+  content: string
+  left: number
+  top: number
+  width: number
+  height: number
+  scale: number
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: "update:content", value: string): void;
-  (e: "delete"): void;
-}>();
+  (e: 'update:content', value: string): void
+  (e: 'delete'): void
+}>()
 
 const handleInput = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement;
-  emit("update:content", target.value);
-};
+  const target = event.target as HTMLTextAreaElement
+  emit('update:content', target.value)
+}
 </script>
 
 <template>

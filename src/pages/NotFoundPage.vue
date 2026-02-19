@@ -5,14 +5,9 @@
     <div
       class="w-full flex-1 overflow-hidden flex flex-col items-center justify-center gap-[0.312rem] max-w-full"
     >
-      <div class="relative font-semibold">
-        Ups!<br />This page<br />does not exist :(
-      </div>
+      <div class="relative font-semibold">Ups!<br />This page<br />does not exist :(</div>
       <div class="flex items-start text-left text-[2rem]">
-        <RouterLink
-          to="/"
-          class="relative text-blue-500 underline leading-[140%]"
-        >
+        <RouterLink to="/" class="relative text-blue-500 underline leading-[140%]">
           Home Page
         </RouterLink>
       </div>

@@ -1,38 +1,37 @@
 <script setup lang="ts">
-import { formatDate } from "../lib/dateFormatter";
-import IconButton from "./IconButton.vue";
+import { formatDate } from '../lib/dateFormatter'
+import IconButton from './IconButton.vue'
 
 export interface ButtonConfig {
-  icon: string;
-  alt?: string;
-  background?: string;
-  isLoading?: boolean;
-  onClick?: (e?: Event) => void;
+  icon: string
+  alt?: string
+  background?: string
+  isLoading?: boolean
+  onClick?: (e?: Event) => void
 }
 
 interface Props {
-  title: string;
-  date: string;
-  index: number;
-  buttons?: ButtonConfig[];
-  gradient?: string;
+  title: string
+  date: string
+  index: number
+  buttons?: ButtonConfig[]
+  gradient?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  gradient:
-    "[background:linear-gradient(90deg,_#ced8ff,_#e5ebff_65.38%,_#f5f7ff)]",
-});
+  gradient: '[background:linear-gradient(90deg,_#ced8ff,_#e5ebff_65.38%,_#f5f7ff)]',
+})
 
 const emit = defineEmits<{
-  click: [];
-}>();
+  click: []
+}>()
 
 const handleButtonClick = (button: ButtonConfig, event: Event) => {
-  event.stopPropagation();
+  event.stopPropagation()
   if (button.onClick) {
-    button.onClick(event);
+    button.onClick(event)
   }
-};
+}
 </script>
 
 <template>
@@ -51,9 +50,7 @@ const handleButtonClick = (button: ButtonConfig, event: Event) => {
     >
       {{ title }}
     </div>
-    <div
-      class="relative text-[0.813rem] leading-[140%] font-medium flex-shrink-0"
-    >
+    <div class="relative text-[0.813rem] leading-[140%] font-medium flex-shrink-0">
       {{ formatDate(date) }}
     </div>
     <div
