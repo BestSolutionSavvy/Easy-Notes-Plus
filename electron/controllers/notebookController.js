@@ -51,6 +51,7 @@ const loadNotebooks = async () => {
     }
     const entries = await fs.readdir(notebooksPath, { withFileTypes: true })
     const notebooks = []
+    const processedFiles = new Set()
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const subjectPath = path.join(notebooksPath, entry.name)
@@ -61,6 +62,7 @@ const loadNotebooks = async () => {
             const eznPath = path.join(path.dirname(pdfPath), `${fileName}.ezn`)
             const fileDir = path.dirname(pdfPath)
             const subject = path.relative(notebooksPath, fileDir)
+            processedFiles.add(path.join(subject, fileName))
             let notebook
             if (fsSync.existsSync(eznPath)) {
               const content = await fs.readFile(eznPath, 'utf-8')
@@ -83,6 +85,27 @@ const loadNotebooks = async () => {
         }
       }
     }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const subjectPath = path.join(notebooksPath, entry.name)
+        const eznFiles = await _findFilesRecursively(subjectPath, '.ezn')
+        for (const eznPath of eznFiles) {
+          try {
+            const fileName = path.basename(eznPath, '.ezn')
+            const fileDir = path.dirname(eznPath)
+            const subject = path.relative(notebooksPath, fileDir)
+            const fileKey = path.join(subject, fileName)
+            if (!processedFiles.has(fileKey)) {
+              const content = await fs.readFile(eznPath, 'utf-8')
+              const notebook = JSON.parse(content)
+              notebooks.push(notebook)
+            }
+          } catch (error) {
+            console.error(`Error processing ${eznPath}:`, error)
+          }
+        }
+      }
+    }
     return notebooks
   } catch (error) {
     console.error('Error loading notebooks:', error)
@@ -98,26 +121,28 @@ const loadNotebook = async (fileName, subject) => {
       throw new Error('Notebooks folder not configured')
     }
     const subjectPath = path.join(notebooksPath, subject)
-    const pdfPath = await _findFileByName(subjectPath, `${fileName}.pdf`)
-    if (!pdfPath) {
-      throw new Error('PDF file not found')
-    }
     const eznPath = await _findFileByName(subjectPath, `${fileName}.ezn`)
+    const pdfPath = await _findFileByName(subjectPath, `${fileName}.pdf`)
     if (eznPath) {
       const content = await fs.readFile(eznPath, 'utf-8')
       const notebook = JSON.parse(content)
-      notebook.pdf = pdfPath
+      if (pdfPath) {
+        notebook.pdf = pdfPath
+      }
       return notebook
     }
-    return {
-      name: fileName,
-      subject: subject,
-      pdf: pdfPath,
-      date: new Date().toISOString(),
-      last_page: 1,
-      num_notebook_pages: 0,
-      pages: [],
+    if (pdfPath) {
+      return {
+        name: fileName,
+        subject: subject,
+        pdf: pdfPath,
+        date: new Date().toISOString(),
+        last_page: 1,
+        num_notebook_pages: 0,
+        pages: [],
+      }
     }
+    throw new Error('Notebook not found')
   } catch (error) {
     console.error('Error loading notebook:', error)
     throw error

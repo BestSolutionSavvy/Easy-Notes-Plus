@@ -22,8 +22,8 @@ const isSaving = ref(false)
 const saveSuccess = ref(false)
 const isEditingName = ref(false)
 const editedNotebookName = ref('')
-const router = useRouter()
-const selectedSubject = ref('')
+const newNotebookName = ref('')
+const newNotebookSubject = ref('')
 const openNotebookButtonRef = ref<InstanceType<typeof HeaderButton> | null>(null)
 const createSimpleNotebookRef = ref<InstanceType<typeof HeaderButton> | null>(null)
 const saveButtonRef = ref<InstanceType<typeof HeaderButton> | null>(null)
@@ -101,14 +101,19 @@ const toggleSave = () => {
 }
 
 const createSimpleNotebook = async () => {
-  if (selectedSubject.value) {
+  if (newNotebookSubject.value.trim() && newNotebookName.value.trim()) {
     createSimpleNotebookRef.value?.closeOverlay()
-    await router.replace({
-      path: '/',
-      query: { subject: selectedSubject.value },
-    })
-    router.go(0)
-    selectedSubject.value = ''
+    const newNotebook: Notebook = {
+      name: newNotebookName.value.trim(),
+      subject: newNotebookSubject.value.trim(),
+      date: new Date().toISOString(),
+      num_notebook_pages: 100,
+      pages: [],
+      last_page: 1,
+    }
+    newNotebookName.value = ''
+    newNotebookSubject.value = ''
+    emit('open-notebook', newNotebook)
   }
 }
 
@@ -150,7 +155,7 @@ onMounted(async () => {
     >
       <div class="flex-1 flex items-center justify-start gap-2">
         <img
-          src="../assets/menuIcon.svg"
+          src="../assets/menu.svg"
           class="w-6 h-5 cursor-pointer menu-icon transition-transform duration-300 hover:scale-125"
           :class="{ 'rotate-180': isMenuOpen }"
           @click="toggleMenu"
@@ -220,6 +225,43 @@ onMounted(async () => {
               {{ notebook.name }}
             </div>
             <div class="text-sm text-gray-500">{{ notebook.subject }}</div>
+          </div>
+        </HeaderButton>
+        <HeaderButton
+          ref="createSimpleNotebookRef"
+          v-if="variant === 'tools' && !currentNotebook"
+          :text="'Create Notebook'"
+          :direction="'left'"
+          :icon="createSimpleNotebookIcon"
+        >
+          <div class="flex flex-col gap-3 p-3 min-w-[16rem]">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-gray-600">Notebook Name</label>
+              <input
+                v-model="newNotebookName"
+                @keydown.enter="createSimpleNotebook"
+                type="text"
+                placeholder="My Notebook"
+                class="px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-gray-600">Subject/Folder</label>
+              <input
+                v-model="newNotebookSubject"
+                @keydown.enter="createSimpleNotebook"
+                type="text"
+                placeholder="General"
+                class="px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <button
+              @click="createSimpleNotebook"
+              :disabled="!newNotebookName.trim() || !newNotebookSubject.trim()"
+              class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-150"
+            >
+              Create Notebook
+            </button>
           </div>
         </HeaderButton>
         <HeaderButton
