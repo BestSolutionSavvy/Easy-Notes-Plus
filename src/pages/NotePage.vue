@@ -1,65 +1,67 @@
 <script setup lang="ts">
-import { ref, watch, computed, nextTick, onMounted } from "vue";
-import type { Notebook } from "../types/notebook";
-import { marked } from "marked";
+import { ref, watch, computed, nextTick, onMounted } from 'vue'
+import type { Notebook } from '../types/notebook'
+import { marked } from 'marked'
 
-const isEditing = ref(false);
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-const noteContent = ref<string>("");
+const isEditing = ref(false)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const noteContent = ref<string>('')
 
 interface Props {
-  notebook?: Notebook | null;
-  currentPage?: number;
+  notebook?: Notebook | null
+  currentPage?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   notebook: null,
   currentPage: 0,
-});
+})
 
 const currentPageData = computed(() => {
   if (props.notebook?.pages) {
-    return props.notebook.pages.find(
-      (p) => p.page_number === props.currentPage,
-    );
+    return props.notebook.pages.find((p) => p.page_number === props.currentPage)
   } else {
-    return null;
+    return null
   }
-});
+})
 
 const renderedContent = computed(() => {
   if (noteContent.value) {
-    return marked.parse(noteContent.value);
+    return marked.parse(noteContent.value)
   } else {
-    return "";
+    return ''
   }
-});
+})
 
 watch(
   () => props.currentPage,
   () => {
-    noteContent.value = currentPageData.value?.note_content || "";
+    noteContent.value = currentPageData.value?.note_content || ''
   },
-);
+)
+
+watch(
+  () => props.notebook,
+  () => {
+    noteContent.value = currentPageData.value?.note_content || ''
+  },
+)
 
 watch(noteContent, () => {
   if (isEditing.value) {
-    saveNote();
+    saveNote()
   }
-});
+})
 
 const saveNote = (pageNumber?: number) => {
   if (props.notebook && props.notebook.pages) {
-    const targetPage =
-      pageNumber !== undefined ? pageNumber : props.currentPage;
-    const pageIndex = props.notebook.pages.findIndex(
-      (p) => p.page_number === targetPage,
-    );
+    const targetPage = pageNumber !== undefined ? pageNumber : props.currentPage
+    const pageIndex = props.notebook.pages.findIndex((p) => p.page_number === targetPage)
 
     if (pageIndex !== -1) {
-      const page = props.notebook.pages[pageIndex];
+      const page = props.notebook.pages[pageIndex]
       if (page) {
-        page.note_content = noteContent.value;
+        page.note_content = noteContent.value
       }
     } else if (noteContent.value.trim()) {
       props.notebook.pages.push({
@@ -68,51 +70,41 @@ const saveNote = (pageNumber?: number) => {
         note_content: noteContent.value,
         text_boxes: [],
         highlights: [],
-      });
+      })
     }
   }
-};
+}
 
 const startEditing = () => {
-  isEditing.value = true;
+  isEditing.value = true
   nextTick(() => {
-    textareaRef.value?.focus();
-  });
-};
+    textareaRef.value?.focus()
+  })
+}
 
 const stopEditing = () => {
-  isEditing.value = false;
-};
+  isEditing.value = false
+}
 
 defineExpose({
   startEditing,
   stopEditing,
-});
+})
 
 onMounted(() => {
-  noteContent.value = currentPageData.value?.note_content || "";
-});
+  noteContent.value = currentPageData.value?.note_content || ''
+})
 </script>
 
 <template>
   <div
     class="h-full flex-1 w-full relative rounded-tl-none rounded-tr-[10px] rounded-br-[10px] rounded-bl-none bg-gray-100 overflow-hidden shrink-0 flex flex-col items-center justify-center py-[1.875rem] px-[1.25rem] box-border gap-[0.625rem] text-center text-[1.25rem] text-darkslategray font-inter"
   >
-    <div
-      class="self-stretch overflow-hidden flex items-end py-[0rem] px-[0.625rem]"
-    >
-      <div
-        class="overflow-hidden flex items-center justify-center gap-[0.312rem]"
-      >
-        <img
-          src="../assets/notes.svg"
-          class="w-[1rem] relative max-h-full"
-          alt=""
-        />
+    <div class="self-stretch overflow-hidden flex items-end py-[0rem] px-[0.625rem]">
+      <div class="overflow-hidden flex items-center justify-center gap-[0.312rem]">
+        <img src="../assets/notes.svg" class="w-[1rem] relative max-h-full" alt="" />
         <b class="relative">Notes for page {{ props.currentPage }}</b>
-        <div
-          class="h-[1.125rem] w-[0.313rem] relative overflow-hidden shrink-0"
-        />
+        <div class="h-[1.125rem] w-[0.313rem] relative overflow-hidden shrink-0" />
       </div>
     </div>
     <div
@@ -207,7 +199,7 @@ onMounted(() => {
   background-color: #f3f4f6;
   padding: 0.2em 0.4em;
   border-radius: 3px;
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
   font-size: 0.9em;
   color: #d63384;
 }

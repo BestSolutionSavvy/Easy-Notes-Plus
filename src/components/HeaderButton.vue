@@ -1,88 +1,80 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick } from 'vue'
 
-const open = ref(false);
-const isClosing = ref(false);
-const buttonRef = ref<HTMLButtonElement | null>(null);
-const overlayRef = ref<HTMLElement | null>(null);
+const open = ref(false)
+const isClosing = ref(false)
+const buttonRef = ref<HTMLButtonElement | null>(null)
+const overlayRef = ref<HTMLElement | null>(null)
 
-const position = ref({ top: 0, left: 0 });
-const scale = ref({ x: 0.6, y: 0.05 });
+const position = ref({ top: 0, left: 0 })
+const scale = ref({ x: 0.6, y: 0.05 })
 
 const emit = defineEmits<{
-  (e: "open-overlay"): void;
-}>();
+  (e: 'open-overlay'): void
+}>()
 
 async function toggleOverlay() {
   if (open.value) {
-    closeOverlay();
+    closeOverlay()
   } else {
-    openOverlay();
+    openOverlay()
   }
 }
 
 async function openOverlay() {
   if (buttonRef.value) {
-    const rect = buttonRef.value.getBoundingClientRect();
-    isClosing.value = false;
-    open.value = true;
-    emit("open-overlay");
-
-    await nextTick();
-
+    const rect = buttonRef.value.getBoundingClientRect()
+    isClosing.value = false
+    open.value = true
+    emit('open-overlay')
+    await nextTick()
     if (overlayRef.value) {
-      const overlayRect = overlayRef.value.getBoundingClientRect();
-
-      const left =
-        props.direction === "right"
-          ? rect.left
-          : rect.right - overlayRect.width;
-
+      const overlayRect = overlayRef.value.getBoundingClientRect()
+      const left = props.direction === 'right' ? rect.left : rect.right - overlayRect.width
       position.value = {
         top: rect.top,
         left: left,
-      };
-
+      }
       scale.value = {
         x: rect.width / overlayRect.width,
         y: rect.height / overlayRect.height,
-      };
+      }
     }
   }
 }
 
 function closeOverlay() {
-  isClosing.value = true;
+  isClosing.value = true
   setTimeout(() => {
-    open.value = false;
-    isClosing.value = false;
-  }, 500);
+    open.value = false
+    isClosing.value = false
+  }, 500)
 }
 
 const overlayStyle = computed(() => ({
   top: `${position.value.top}px`,
   left: `${position.value.left}px`,
-  "--scale-x": scale.value.x,
-  "--scale-y": scale.value.y,
-  "--origin-x": props.direction === "right" ? "0%" : "100%",
-}));
+  '--scale-x': scale.value.x,
+  '--scale-y': scale.value.y,
+  '--origin-x': props.direction === 'right' ? '0%' : '100%',
+}))
 
 interface Props {
-  text?: string;
-  icon?: string;
-  direction?: "left" | "right";
+  text?: string
+  icon?: string
+  direction?: 'left' | 'right'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  text: "",
-  icon: "../assets/close.svg",
-  direction: "right",
-});
+  text: '',
+  icon: '../assets/close.svg',
+  direction: 'right',
+})
 
 defineExpose({
   closeOverlay,
   openOverlay,
-});
+})
 </script>
 
 <template>
@@ -107,10 +99,7 @@ defineExpose({
       ]"
     >
       <div>
-        <div
-          :class="[isClosing ? 'fade-out-content' : 'fade-in-content']"
-          class="mt-2"
-        >
+        <div :class="[isClosing ? 'fade-out-content' : 'fade-in-content']" class="mt-2">
           <slot></slot>
         </div>
       </div>

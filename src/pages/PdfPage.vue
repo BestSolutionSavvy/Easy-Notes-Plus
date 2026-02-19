@@ -279,6 +279,10 @@ const loadPdfFile = async (notebook: Notebook | null | undefined) => {
     error.value = null
     return
   }
+  if (!notebook.pdf) {
+    error.value = 'PDF file path not found'
+    return
+  }
   try {
     isLoading.value = true
     error.value = null
@@ -297,18 +301,13 @@ const loadPdfFile = async (notebook: Notebook | null | undefined) => {
 
 watch(
   () => props.notebook,
-  async (newNotebook, oldNotebook) => {
-    const newFileName = newNotebook ? getNotebookFileName(newNotebook) : null
-    const oldFileName = oldNotebook ? getNotebookFileName(oldNotebook) : null
-    if (newFileName !== oldFileName) {
-      await loadPdfFile(newNotebook)
-    }
+  async (newNotebook) => {
+    await loadPdfFile(newNotebook)
   },
-  { immediate: false },
+  { immediate: true },
 )
 
 onMounted(async () => {
-  await loadPdfFile(props.notebook)
   document.addEventListener('mousemove', handlePdfMouseMove)
   document.addEventListener('mouseup', handlePdfMouseUp)
 })

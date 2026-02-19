@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, toRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import Menu from '../pages/Menu.vue'
 import HeaderButton from './HeaderButton.vue'
@@ -55,7 +55,9 @@ const saveNotebook = async () => {
 
     try {
       const fileName = getNotebookFileName(props.currentNotebook)
-      const result = await saveNotebookUtil(props.currentNotebook, fileName)
+      // Convert Vue Proxy to plain object for IPC
+      const plainNotebook = toRaw(props.currentNotebook)
+      const result = await saveNotebookUtil(plainNotebook, fileName)
       if (result.success) {
         saveSuccess.value = true
         setTimeout(() => {

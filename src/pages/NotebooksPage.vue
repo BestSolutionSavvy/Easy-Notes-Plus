@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadNotebooks, deleteNotebook, getNotebookFileName } from '../lib/notebookUtils'
 import loadIcon from '../assets/load.svg'
 import trashIcon from '../assets/trash.svg'
+import reloadIcon from '../assets/reload.svg'
 import ListElement from '../components/ListElement.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import IconButton from '../components/IconButton.vue'
 import type { Notebook } from '../types/notebook'
 
 const router = useRouter()
@@ -111,8 +113,24 @@ const onCloseErrorModal = () => {
   modalTitle.value = ''
 }
 
+// Handles keyboard shortcuts
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.code === 'Space' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+    const target = event.target as HTMLElement
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      event.preventDefault()
+      handleLoadNotebooks()
+    }
+  }
+}
+
 onMounted(() => {
   handleLoadNotebooks()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -120,9 +138,7 @@ onMounted(() => {
   <div
     class="h-full flex-1 w-full relative overflow-hidden shrink-0 flex flex-col items-start text-left text-[1rem] text-darkslateblue font-inter"
   >
-    <div
-      class="self-stretch flex-1 rounded-tl-none rounded-tr-num-8 rounded-br-num-8 rounded-bl-none bg-white overflow-hidden flex flex-col items-center justify-center p-[0.625rem] gap-[1.875rem]"
-    >
+    <div class="flex-1 w-full flex flex-col items-center justify-center">
       <div v-if="isLoading" class="flex flex-col items-center justify-center gap-4">
         <div
           class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
@@ -190,6 +206,15 @@ onMounted(() => {
           </ul>
         </li>
       </ul>
+      <div class="w-full flex justify-end pe-20 pb-2">
+        <IconButton
+          :icon="reloadIcon"
+          alt="Reload notebooks"
+          background="bg-white"
+          :loading="isLoading"
+          @click="handleLoadNotebooks"
+        />
+      </div>
     </div>
     <ConfirmModal
       :isOpen="showDeleteModal"

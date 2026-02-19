@@ -27,7 +27,7 @@ const loadCurrentPdf = async () => {
     const fileName = getNotebookFileName(props.notebook)
     const subject = props.notebook.subject
     try {
-      pdf.value = await loadPdf(fileName, subject, props.notebook.pdf)
+      pdf.value = await loadPdf(fileName, subject, props.notebook.pdf!)
       pdfName.value = props.notebook.name
       if (pdf.value) {
         pdfUrl.value = URL.createObjectURL(pdf.value)

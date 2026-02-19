@@ -100,10 +100,10 @@ const handleKeydown = (event: KeyboardEvent) => {
   } else if (!isTypingNow && event.key === 'ArrowLeft') {
     event.preventDefault()
     handlePagePrev()
-  } else if (!isTypingNow && event.key === 'Enter' && openedNotebook.value?.type === 'slide') {
+  } else if (!isTypingNow && event.key === 'Enter' && openedNotebook.value?.pdf) {
     event.preventDefault()
     notePageRightRef.value?.startEditing()
-  } else if (isTypingNow && event.key === 'Escape' && openedNotebook.value?.type === 'slide') {
+  } else if (isTypingNow && event.key === 'Escape' && openedNotebook.value?.pdf) {
     event.preventDefault()
     notePageRightRef.value?.stopEditing()
   }
@@ -158,7 +158,7 @@ onUnmounted(() => {
   <MainStructure>
     <template #left>
       <PdfPage
-        v-if="openedNotebook?.type === 'slide'"
+        v-if="openedNotebook?.pdf"
         :notebook="openedNotebook"
         :currentPage="currentPdfPage"
         @page-next="handlePageNext"
@@ -166,7 +166,7 @@ onUnmounted(() => {
       />
       <NotePage
         ref="notePageLeftRef"
-        v-else-if="openedNotebook?.type === 'simple'"
+        v-else-if="openedNotebook && !openedNotebook.pdf"
         :notebook="openedNotebook"
         :currentPage="currentNotebookPage"
       />
@@ -184,13 +184,13 @@ onUnmounted(() => {
     <template #right>
       <NotePage
         ref="notePageRightRef"
-        v-if="openedNotebook?.type === 'slide'"
+        v-if="openedNotebook?.pdf"
         :notebook="openedNotebook"
         :currentPage="currentNotebookPage"
       />
       <NotePage
         ref="notePageRightRef"
-        v-else-if="openedNotebook?.type === 'simple'"
+        v-else-if="openedNotebook && !openedNotebook.pdf"
         :notebook="openedNotebook"
         :currentPage="currentNotebookPage + 1"
       />

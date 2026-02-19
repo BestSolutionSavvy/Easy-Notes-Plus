@@ -17,7 +17,7 @@ interface Pages {
 interface Notebook {
   name: string
   subject: string
-  pdf: string
+  pdf?: string
   date: string
   last_page: number
   num_notebook_pages: number
