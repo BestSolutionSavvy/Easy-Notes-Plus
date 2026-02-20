@@ -12,11 +12,15 @@ const { loadPdf } = require('./controllers/pdfController')
 let mainWindow = null
 
 const createWindow = () => {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'favicon.ico')
+    : path.join(__dirname, '../public/favicon.ico')
+
   mainWindow = new BrowserWindow({
     width: 1080,
     height: 720,
     autoHideMenuBar: true,
-    icon: 'public/favicon.ico',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

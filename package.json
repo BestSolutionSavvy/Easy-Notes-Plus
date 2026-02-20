@@ -65,6 +65,12 @@
       "dist/**/*",
       "electron/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "public/favicon.ico",
+        "to": "favicon.ico"
+      }
+    ],
     "win": {
       "icon": "public/faviconx256.ico",
       "target": [
