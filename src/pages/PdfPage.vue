@@ -341,6 +341,9 @@ onUnmounted(() => {
       class="self-stretch flex-1 overflow-hidden flex flex-col items-center gap-[0.312rem] text-[0.875rem]"
     >
       <div v-if="isLoading" class="flex items-center justify-center h-full w-full">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
+        ></div>
         <div class="text-gray-500">Loading PDF...</div>
       </div>
       <div v-else-if="error" class="flex items-center justify-center h-full w-full">

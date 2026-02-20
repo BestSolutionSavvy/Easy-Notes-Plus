@@ -136,9 +136,18 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="h-full flex-1 w-full relative overflow-hidden shrink-0 flex flex-col items-start text-left text-[1rem] text-darkslateblue font-inter"
+    class="h-full flex-1 w-full relative shrink-0 flex flex-col items-start text-left text-[1rem] text-darkslateblue font-inter"
   >
-    <div class="flex-1 w-full flex flex-col items-center justify-center">
+    <div class="flex-1 w-full flex flex-col items-center overflow-y-auto min-h-0">
+      <div class="w-full flex justify-end pt-2">
+        <IconButton
+          :icon="reloadIcon"
+          alt="Reload notebooks"
+          background="bg-white"
+          :loading="isLoading"
+          @click="handleLoadNotebooks"
+        />
+      </div>
       <div v-if="isLoading" class="flex flex-col items-center justify-center gap-4">
         <div
           class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
@@ -162,8 +171,7 @@ onUnmounted(() => {
           or starting from a PDF of a class!
         </div>
       </div>
-
-      <ul v-else>
+      <ul v-else class="flex flex-col gap-[2rem]">
         <li
           v-for="subject in subjects"
           :key="subject"
@@ -206,15 +214,6 @@ onUnmounted(() => {
           </ul>
         </li>
       </ul>
-      <div class="w-full flex justify-end pe-20 pb-2">
-        <IconButton
-          :icon="reloadIcon"
-          alt="Reload notebooks"
-          background="bg-white"
-          :loading="isLoading"
-          @click="handleLoadNotebooks"
-        />
-      </div>
     </div>
     <ConfirmModal
       :isOpen="showDeleteModal"

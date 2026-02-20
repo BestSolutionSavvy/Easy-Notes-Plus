@@ -1,6 +1,6 @@
 <template>
   <main class="flex-1 grid md:grid-cols-[1fr_auto_1fr] gap-0 overflow-hidden rounded-xl">
-    <div class="bg-white flex flex-col items-center justify-center md:rounded-l-xl">
+    <div class="bg-white flex flex-col items-center justify-center md:rounded-l-xl overflow-y-auto">
       <slot name="left"></slot>
     </div>
 
