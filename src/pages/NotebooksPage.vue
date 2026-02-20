@@ -138,82 +138,84 @@ onUnmounted(() => {
   <div
     class="h-full flex-1 w-full relative shrink-0 flex flex-col items-start text-left text-[1rem] text-darkslateblue font-inter"
   >
-    <div class="flex-1 w-full flex flex-col items-center overflow-y-auto min-h-0">
-      <div class="w-full flex justify-end pt-2">
-        <IconButton
-          :icon="reloadIcon"
-          alt="Reload notebooks"
-          background="bg-white"
-          :loading="isLoading"
-          @click="handleLoadNotebooks"
-        />
-      </div>
-      <div v-if="isLoading" class="flex flex-col items-center justify-center gap-4">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
-        ></div>
-        <div class="text-gray-500">Loading notebooks...</div>
-      </div>
-      <div v-else-if="errorMessage" class="text-red-500">
-        {{ errorMessage }}
-      </div>
-      <div
-        v-else-if="notebooks.length === 0"
-        class="animate-fade-in flex flex-col items-center justify-center gap-4 p-8 max-w-md"
-      >
-        <div class="text-6xl">📒</div>
-        <div class="text-xl font-semibold text-gray-700">No notebooks yet</div>
-        <div class="text-center text-gray-500 leading-relaxed">
-          Create your first notebook by using the
-          <RouterLink to="/" class="text-blue-500 hover:underline font-medium"
-            >home screen</RouterLink
-          >
-          or starting from a PDF of a class!
+    <div class="pt-5 flex-1 w-full flex flex-col items-center overflow-y-auto min-h-0" dir="rtl">
+      <div dir="ltr">
+        <div v-if="isLoading" class="flex flex-col items-center justify-center gap-4">
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
+          ></div>
+          <div class="text-gray-500">Loading notebooks...</div>
         </div>
-      </div>
-      <ul v-else class="flex flex-col gap-[2rem]">
-        <li
-          v-for="subject in subjects"
-          :key="subject"
-          class="w-[31.25rem] overflow-hidden flex flex-col items-center p-[0.312rem] box-border gap-[0.625rem]"
+        <div v-else-if="errorMessage" class="text-red-500">
+          {{ errorMessage }}
+        </div>
+        <div
+          v-else-if="notebooks.length === 0"
+          class="animate-fade-in flex flex-col items-center justify-center gap-4 p-8 max-w-md"
         >
-          <div class="animate-fade-in">
-            <div
-              class="self-stretch flex items-center gap-[0.625rem] text-[1.875rem] text-darkslategray"
+          <div class="text-6xl">📒</div>
+          <div class="text-xl font-semibold text-gray-700">No notebooks yet</div>
+          <div class="text-center text-gray-500 leading-relaxed">
+            Create your first notebook by using the
+            <RouterLink to="/" class="text-blue-500 hover:underline font-medium"
+              >home screen</RouterLink
             >
-              <div class="relative font-semibold">{{ subject }}</div>
+            or starting from a PDF of a class!
+          </div>
+        </div>
+        <ul v-else class="flex flex-col gap-[2rem]">
+          <li
+            v-for="subject in subjects"
+            :key="subject"
+            class="w-[31.25rem] overflow-hidden flex flex-col items-center p-[0.312rem] box-border gap-[0.625rem]"
+          >
+            <div class="animate-fade-in">
+              <div
+                class="self-stretch flex items-center gap-[0.625rem] text-[1.875rem] text-darkslategray"
+              >
+                <div class="relative font-semibold">{{ subject }}</div>
+              </div>
+              <div
+                class="w-[30.063rem] h-[0.063rem] relative border-black border-solid border-t-[1px] box-border opacity-[0.5]"
+              />
             </div>
-            <div
-              class="w-[30.063rem] h-[0.063rem] relative border-black border-solid border-t-[1px] box-border opacity-[0.5]"
+            <ul class="w-full flex flex-col gap-[0.625rem]">
+              <ListElement
+                v-for="(notebook, index) in notebooksPerSubject[subject]"
+                :key="notebook.name"
+                :title="notebook.name"
+                :date="notebook.date"
+                :index="index"
+                :gradient="'[background:linear-gradient(90deg,_#fff0ca,_#fff8e6_65.38%,_#fffcf5)]'"
+                @click="onSelectNotebook(notebook)"
+                :buttons="[
+                  {
+                    icon: loadIcon,
+                    alt: 'Edit Notebook',
+                    background: 'bg-orangered-100',
+                    onClick: () => onLoadNotebook(subject, notebook),
+                  },
+                  {
+                    icon: trashIcon,
+                    alt: 'Delete Note',
+                    background: 'bg-orangered-100',
+                    onClick: () => handleDeleteNotebook(notebook),
+                  },
+                ]"
+              />
+            </ul>
+          </li>
+          <div class="w-full flex justify-end pb-2">
+            <IconButton
+              :icon="reloadIcon"
+              alt="Reload notebooks"
+              background="bg-white"
+              :loading="isLoading"
+              @click="handleLoadNotebooks"
             />
           </div>
-          <ul class="w-full flex flex-col gap-[0.625rem]">
-            <ListElement
-              v-for="(notebook, index) in notebooksPerSubject[subject]"
-              :key="notebook.name"
-              :title="notebook.name"
-              :date="notebook.date"
-              :index="index"
-              :gradient="'[background:linear-gradient(90deg,_#fff0ca,_#fff8e6_65.38%,_#fffcf5)]'"
-              @click="onSelectNotebook(notebook)"
-              :buttons="[
-                {
-                  icon: loadIcon,
-                  alt: 'Edit Notebook',
-                  background: 'bg-orangered-100',
-                  onClick: () => onLoadNotebook(subject, notebook),
-                },
-                {
-                  icon: trashIcon,
-                  alt: 'Delete Note',
-                  background: 'bg-orangered-100',
-                  onClick: () => handleDeleteNotebook(notebook),
-                },
-              ]"
-            />
-          </ul>
-        </li>
-      </ul>
+        </ul>
+      </div>
     </div>
     <ConfirmModal
       :isOpen="showDeleteModal"

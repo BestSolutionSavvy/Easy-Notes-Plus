@@ -2,6 +2,30 @@ const path = require('path')
 const fs = require('fs').promises
 const fsSync = require('fs')
 const { getConfig } = require('../config/storage')
+const { PDFDocument } = require('pdf-lib')
+
+// Helper function to extract date from PDF metadata
+const _getPdfDate = async (pdfPath) => {
+  try {
+    const pdfBytes = await fs.readFile(pdfPath)
+    const pdfDoc = await PDFDocument.load(pdfBytes)
+    const creationDate = pdfDoc.getCreationDate()
+    const modificationDate = pdfDoc.getModificationDate()
+    const pdfDate = creationDate || modificationDate
+    if (pdfDate) {
+      return pdfDate.toISOString()
+    }
+  } catch (error) {
+    console.error(`Error extracting PDF metadata from ${pdfPath}:`, error)
+  }
+  try {
+    const stats = await fs.stat(pdfPath)
+    return stats.mtime.toISOString()
+  } catch (error) {
+    console.error(`Error getting file stats from ${pdfPath}:`, error)
+    return new Date().toISOString()
+  }
+}
 
 // Helper function to recursively find files with a specific extension
 const _findFilesRecursively = async (dir, extension) => {
@@ -61,17 +85,19 @@ const loadNotebooks = async () => {
             const fileName = path.basename(pdfPath, '.pdf')
             const eznPath = path.join(path.dirname(pdfPath), `${fileName}.ezn`)
             const fileDir = path.dirname(pdfPath)
-            const subject = path.relative(notebooksPath, fileDir)
-            processedFiles.add(path.join(subject, fileName))
+            const relativePath = path.relative(notebooksPath, fileDir)
+            const subject = relativePath.split(path.sep)[0]
+            processedFiles.add(path.join(relativePath, fileName))
             let notebook
             if (fsSync.existsSync(eznPath)) {
               const content = await fs.readFile(eznPath, 'utf-8')
               notebook = JSON.parse(content)
             } else {
+              const pdfDate = await _getPdfDate(pdfPath)
               notebook = {
                 name: fileName,
                 subject: subject,
-                date: new Date().toISOString(),
+                date: pdfDate,
                 last_page: 1,
                 num_notebook_pages: 0,
                 pages: [],
@@ -132,11 +158,12 @@ const loadNotebook = async (fileName, subject) => {
       return notebook
     }
     if (pdfPath) {
+      const pdfDate = await _getPdfDate(pdfPath)
       return {
         name: fileName,
         subject: subject,
         pdf: pdfPath,
-        date: new Date().toISOString(),
+        date: pdfDate,
         last_page: 1,
         num_notebook_pages: 0,
         pages: [],
