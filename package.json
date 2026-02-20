@@ -1,5 +1,9 @@
 {
   "name": "easy-notes-plus",
+  "description": "A modern desktop application for taking notes on PDF documents",
+  "author": {
+    "name": "BSS"
+  },
   "version": "1.0.0",
   "private": true,
   "main": "electron/main.js",
@@ -55,9 +59,24 @@
   },
   "build": {
     "appId": "com.sevet.easy-notes-plus",
+    "productName": "Easy Notes Plus",
     "files": [
       "dist/**/*",
       "electron/**/*"
-    ]
+    ],
+    "win": {
+      "icon": "public/favicon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "icon": "public/favicon.ico",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "icon": "public/favicon.ico",
+      "category": "Office"
+    }
   }
 }

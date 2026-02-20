@@ -56,6 +56,11 @@ NotebooksFolder/
 - **Escape**: Stop editing notes
 - **Space**: Reload notebooks list (in notebooks page)
 
+## Retrocompatibility
+
+Easy Notes Plus supports importing notebooks created with the old version of Easy Notes. You can use the provided converter script
+in the `converter/` directory to convert your old `.ezn` files to the new format, preserving your notes and highlights.
+
 ## Prerequisites
 
 - **Node.js**: v20 or higher
