@@ -36,6 +36,16 @@ const handleCloseNotebook = () => {
   currentPdfPage.value = 0
 }
 
+const handleNavigateToPage = (pageNumber: number) => {
+  if (openedNotebook.value && openedNotebook.value.pages) {
+    currentNotebookPage.value = pageNumber
+    const page = openedNotebook.value.pages.find((p) => p.page_number === pageNumber)
+    if (page) {
+      currentPdfPage.value = page.slide_number
+    }
+  }
+}
+
 const handlePageNext = () => {
   if (openedNotebook.value && openedNotebook.value.pages) {
     const maxPage = openedNotebook.value.num_notebook_pages
@@ -151,6 +161,7 @@ onUnmounted(() => {
     ref="headerRef"
     @open-notebook="handleOpenNotebook"
     @close-notebook="handleCloseNotebook"
+    @navigate-to-page="handleNavigateToPage"
     :variant="'tools'"
     :currentNotebook="openedNotebook"
     :currentNotebookPage="currentNotebookPage"

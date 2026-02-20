@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref, toRaw } from 'vue'
-import { useRouter } from 'vue-router'
 import Menu from '../pages/Menu.vue'
 import HeaderButton from './HeaderButton.vue'
 import ShortcutsList from './ShortcutsList.vue'
@@ -20,10 +19,11 @@ const isMenuOpen = ref(false)
 const notebooks = ref<Notebook[]>([])
 const isSaving = ref(false)
 const saveSuccess = ref(false)
-const isEditingName = ref(false)
-const editedNotebookName = ref('')
 const newNotebookName = ref('')
 const newNotebookSubject = ref('')
+const searchQuery = ref('')
+const searchResults = ref<number[]>([])
+const currentSearchIndex = ref(0)
 const openNotebookButtonRef = ref<InstanceType<typeof HeaderButton> | null>(null)
 const createSimpleNotebookRef = ref<InstanceType<typeof HeaderButton> | null>(null)
 const saveButtonRef = ref<InstanceType<typeof HeaderButton> | null>(null)
@@ -55,7 +55,6 @@ const saveNotebook = async () => {
 
     try {
       const fileName = getNotebookFileName(props.currentNotebook)
-      // Convert Vue Proxy to plain object for IPC
       const plainNotebook = toRaw(props.currentNotebook)
       const result = await saveNotebookUtil(plainNotebook, fileName)
       if (result.success) {
@@ -73,25 +72,6 @@ const saveNotebook = async () => {
       isSaving.value = false
     }
   }
-}
-
-const startEditingName = () => {
-  if (props.currentNotebook) {
-    editedNotebookName.value = props.currentNotebook.name
-    isEditingName.value = true
-  }
-}
-
-const saveNotebookName = () => {
-  if (props.currentNotebook && editedNotebookName.value.trim()) {
-    props.currentNotebook.name = editedNotebookName.value.trim()
-  }
-  isEditingName.value = false
-}
-
-const cancelEditingName = () => {
-  isEditingName.value = false
-  editedNotebookName.value = ''
 }
 
 const toggleSave = () => {
@@ -117,9 +97,56 @@ const createSimpleNotebook = async () => {
   }
 }
 
+// Search functionality
+const performSearch = () => {
+  if (!props.currentNotebook || !searchQuery.value.trim()) {
+    searchResults.value = []
+    currentSearchIndex.value = 0
+    return
+  }
+  const query = searchQuery.value.toLowerCase()
+  const results: number[] = []
+  props.currentNotebook.pages.forEach((page) => {
+    if (page.note_content && page.note_content.toLowerCase().includes(query)) {
+      results.push(page.page_number)
+    }
+  })
+  searchResults.value = results
+  currentSearchIndex.value = 0
+  if (results.length > 0 && results[0] !== undefined) {
+    emit('navigate-to-page', results[0])
+  }
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  searchResults.value = []
+  currentSearchIndex.value = 0
+}
+
+const nextResult = () => {
+  if (searchResults.value.length === 0) return
+  currentSearchIndex.value = (currentSearchIndex.value + 1) % searchResults.value.length
+  const page = searchResults.value[currentSearchIndex.value]
+  if (page !== undefined) {
+    emit('navigate-to-page', page)
+  }
+}
+
+const previousResult = () => {
+  if (searchResults.value.length === 0) return
+  currentSearchIndex.value =
+    (currentSearchIndex.value - 1 + searchResults.value.length) % searchResults.value.length
+  const page = searchResults.value[currentSearchIndex.value]
+  if (page !== undefined) {
+    emit('navigate-to-page', page)
+  }
+}
+
 const emit = defineEmits<{
   (e: 'open-notebook', notebook: Notebook): void
   (e: 'close-notebook'): void
+  (e: 'navigate-to-page', page: number): void
 }>()
 
 defineExpose({
@@ -163,41 +190,99 @@ onMounted(async () => {
         <h1 class="text-white text-[1.563rem] font-semibold font-['Inter'] px-2">Easy Notes</h1>
       </div>
 
+      <!-- Search Bar -->
       <div
         v-if="variant === 'tools' && props.currentNotebook"
-        class="flex-1 animate-fade-in overflow-hidden flex items-center justify-center text-[1rem] gap-3"
+        class="flex-1 flex items-center justify-center px-4 animate-fade-in"
       >
-        <div class="flex items-center max-w-[500px]">
-          <div
-            v-if="!isEditingName"
-            @click="startEditingName"
-            class="animate-fade-in h-[1.875rem] rounded-[5px] bg-gray-100 overflow-hidden flex items-center justify-center py-[0rem] px-[0.625rem] box-border gap-[0.625rem] cursor-pointer hover:bg-gray-200 transition-all max-w-full"
+        <div class="relative max-w-md w-full">
+          <input
+            v-model="searchQuery"
+            @keydown.enter="performSearch"
+            @input="performSearch"
+            type="text"
+            placeholder="Search in notes..."
+            class="w-full pl-10 pr-20 py-1.5 text-sm bg-white/90 backdrop-blur-sm border border-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent placeholder-gray-500"
+          />
+          <svg
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <span class="font-medium truncate">{{ props.currentNotebook.name }}</span>
-            <svg
-              class="w-4 h-4 text-gray-500 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            ></path>
+          </svg>
+          <div
+            v-if="searchQuery"
+            class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1"
+          >
+            <span v-if="searchResults.length > 0" class="text-xs text-gray-600 mr-1">
+              {{ currentSearchIndex + 1 }}/{{ searchResults.length }}
+            </span>
+            <button
+              v-if="searchResults.length > 0"
+              @click="previousResult"
+              class="p-1 hover:bg-gray-200 rounded transition-colors"
+              title="Previous"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              ></path>
-            </svg>
-          </div>
-          <div v-else class="flex items-center gap-2">
-            <input
-              v-model="editedNotebookName"
-              @keydown.enter="saveNotebookName"
-              @keydown.esc="cancelEditingName"
-              @blur="saveNotebookName"
-              type="text"
-              class="h-[1.875rem] px-[0.625rem] rounded-[5px] bg-gray-100 border-blue-400 border-solid border-2 focus:outline-none focus:border-blue-500 font-medium min-w-[250px] max-w-[450px]"
-              autofocus
-            />
+              <svg
+                class="w-3 h-3 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+            </button>
+            <button
+              v-if="searchResults.length > 0"
+              @click="nextResult"
+              class="p-1 hover:bg-gray-200 rounded transition-colors"
+              title="Next"
+            >
+              <svg
+                class="w-3 h-3 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </button>
+            <button
+              @click="clearSearch"
+              class="p-1 hover:bg-gray-200 rounded transition-colors"
+              title="Clear"
+            >
+              <svg
+                class="w-3 h-3 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>

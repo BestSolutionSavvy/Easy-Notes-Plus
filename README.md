@@ -2,6 +2,8 @@
 
 A modern desktop application for taking notes on PDF documents, built with Electron, Vue 3, and TypeScript.
 
+Download your PDF slides, open them in Easy Notes Plus, and take synchronized notes on the right side. Your notes are automatically linked to the corresponding PDF pages, making it easy to review and study later.
+
 ## Features
 
 ### PDF Annotation
@@ -21,13 +23,13 @@ A modern desktop application for taking notes on PDF documents, built with Elect
 
 ### Notebook Management
 
+- **File System Integration**: Notebooks are stored as .ezn files alongside PDFs in the filesystem, allowing for easy organization of the user using their own folder structure and file management tools
 - **Subject Organization**: Organize notebooks by subject/folder
 - **Recursive Folder Support**: PDFs can be nested in subfolders within subjects
 - **Dual Notebook Types**:
   - **PDF Notebooks**: Linked to PDF files for annotation
   - **Simple Notebooks**: Standalone notebooks for general notes
 - **Notebook List**: View all notebooks with reload functionality (Space to refresh)
-- **Edit Notebook Names**: Click on notebook name to rename
 - **Delete Notebooks**: Remove notebooks and associated files
 
 ### File Structure
