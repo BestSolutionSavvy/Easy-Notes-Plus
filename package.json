@@ -66,17 +66,17 @@
       "electron/**/*"
     ],
     "win": {
-      "icon": "public/favicon.ico",
+      "icon": "public/logo.png",
       "target": [
         "nsis"
       ]
     },
     "mac": {
-      "icon": "public/favicon.ico",
+      "icon": "public/logo.png",
       "category": "public.app-category.productivity"
     },
     "linux": {
-      "icon": "public/favicon.ico",
+      "icon": "public/logo.png",
       "category": "Office"
     }
   }
