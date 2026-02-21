@@ -295,21 +295,23 @@ onMounted(async () => {
           :direction="'left'"
           :icon="openNotebookIcon"
         >
-          <div
-            v-for="notebook in notebooks"
-            :key="getNotebookFileName(notebook)"
-            class="p-2 hover:bg-gainsboro-100 rounded-md cursor-pointer"
-            @click="
-              () => {
-                $emit('open-notebook', notebook)
-                openNotebookButtonRef?.closeOverlay()
-              }
-            "
-          >
-            <div class="font-medium text-darkslateblue">
-              {{ notebook.name }}
+          <div class="max-h-96 overflow-y-auto">
+            <div
+              v-for="notebook in notebooks"
+              :key="getNotebookFileName(notebook)"
+              class="p-2 hover:bg-gainsboro-100 rounded-md cursor-pointer"
+              @click="
+                () => {
+                  $emit('open-notebook', notebook)
+                  openNotebookButtonRef?.closeOverlay()
+                }
+              "
+            >
+              <div class="font-medium text-darkslateblue">
+                {{ notebook.name }}
+              </div>
+              <div class="text-sm text-gray-500">{{ notebook.subject }}</div>
             </div>
-            <div class="text-sm text-gray-500">{{ notebook.subject }}</div>
           </div>
         </HeaderButton>
         <HeaderButton
