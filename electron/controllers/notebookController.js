@@ -119,11 +119,13 @@ const loadNotebooks = async () => {
           try {
             const fileName = path.basename(eznPath, '.ezn')
             const fileDir = path.dirname(eznPath)
-            const subject = path.relative(notebooksPath, fileDir)
-            const fileKey = path.join(subject, fileName)
+            const relativePath = path.relative(notebooksPath, fileDir)
+            const subject = relativePath.split(path.sep)[0]
+            const fileKey = path.join(relativePath, fileName)
             if (!processedFiles.has(fileKey)) {
               const content = await fs.readFile(eznPath, 'utf-8')
               const notebook = JSON.parse(content)
+              notebook.subject = subject
               notebooks.push(notebook)
             }
           } catch (error) {
@@ -161,7 +163,7 @@ const loadNotebook = async (fileName, subject) => {
       const pdfDate = await _getPdfDate(pdfPath)
       return {
         name: fileName,
-        subject: subject,
+        subject: rootSubject,
         pdf: pdfPath,
         date: pdfDate,
         last_page: 1,
