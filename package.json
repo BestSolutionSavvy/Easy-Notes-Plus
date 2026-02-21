@@ -4,7 +4,7 @@
   "author": {
     "name": "BSS"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -81,8 +81,7 @@
       "icon": "public/faviconx256.ico",
       "target": [
         "nsis"
-      ],
-      "publisherName": "BSS"
+      ]
     },
     "mac": {
       "icon": "public/logo.png",
