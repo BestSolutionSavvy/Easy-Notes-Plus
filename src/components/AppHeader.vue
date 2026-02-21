@@ -202,7 +202,7 @@ onMounted(async () => {
             @input="performSearch"
             type="text"
             placeholder="Search in notes..."
-            class="w-full pl-10 pr-20 py-1.5 text-sm bg-white/90 backdrop-blur-sm border border-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent placeholder-gray-500"
+            class="w-full pl-10 pr-20 py-1 text-sm bg-white/90 backdrop-blur-sm border border-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent placeholder-gray-500"
           />
           <svg
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"

@@ -75,6 +75,7 @@ const handleDocumentRender = async (data: any) => {
   if (props.notebook) {
     props.notebook.num_notebook_pages = data.numPages
   }
+  fitToContainer()
 }
 
 const fitToContainer = () => {
@@ -340,7 +341,7 @@ onUnmounted(() => {
     <div
       class="self-stretch flex-1 overflow-hidden flex flex-col items-center gap-[0.312rem] text-[0.875rem]"
     >
-      <div v-if="isLoading" class="flex items-center justify-center h-full w-full">
+      <div v-if="isLoading" class="flex flex-col items-center justify-center h-full w-full">
         <div
           class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
         ></div>

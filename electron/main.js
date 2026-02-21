@@ -8,6 +8,7 @@ const {
   deleteNotebook,
 } = require('./controllers/notebookController')
 const { loadPdf } = require('./controllers/pdfController')
+const { checkForUpdates } = require('./controllers/updateController')
 
 let mainWindow = null
 
@@ -65,7 +66,7 @@ ipcMain.handle('load-pdf', (event, fileName, subject, pdfPath) =>
 
 app.whenReady().then(() => {
   createWindow()
-
+  checkForUpdates()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()

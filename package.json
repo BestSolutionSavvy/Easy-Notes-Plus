@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "electron-updater": "^6.8.3",
     "marked": "^17.0.2",
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4.1.18",
@@ -71,11 +72,17 @@
         "to": "favicon.ico"
       }
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "BestSolutionSavvy",
+      "repo": "easy-notes-plus"
+    },
     "win": {
       "icon": "public/faviconx256.ico",
       "target": [
         "nsis"
-      ]
+      ],
+      "publisherName": "BSS"
     },
     "mac": {
       "icon": "public/logo.png",
