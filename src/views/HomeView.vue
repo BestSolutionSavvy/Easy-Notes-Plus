@@ -79,6 +79,25 @@ const handlePagePrev = () => {
   }
 }
 
+const handlePageGoto = (pageNumber: number) => {
+  if (openedNotebook.value && openedNotebook.value.num_notebook_pages) {
+    const maxPage = openedNotebook.value.num_notebook_pages
+    if (pageNumber >= 1 && pageNumber <= maxPage) {
+      currentPdfPage.value = pageNumber
+      if (openedNotebook.value.pages) {
+        const page = openedNotebook.value.pages.find((p) => p.slide_number === pageNumber)
+        if (page) {
+          currentNotebookPage.value = page.page_number
+        } else {
+          currentNotebookPage.value = pageNumber
+        }
+      } else {
+        currentNotebookPage.value = pageNumber
+      }
+    }
+  }
+}
+
 const isTyping = (): boolean => {
   const activeElement = document.activeElement
   let isTyping = false
@@ -174,6 +193,7 @@ onUnmounted(() => {
         :currentPage="currentPdfPage"
         @page-next="handlePageNext"
         @page-prev="handlePagePrev"
+        @page-goto="handlePageGoto"
       />
       <NotePage
         ref="notePageLeftRef"

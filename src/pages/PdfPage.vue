@@ -22,6 +22,7 @@ const dragStartX = ref<number>(0)
 const dragStartY = ref<number>(0)
 const dragCurrentX = ref<number>(0)
 const dragCurrentY = ref<number>(0)
+const pageInputValue = ref<string>('')
 
 interface Props {
   notebook?: Notebook | null
@@ -64,6 +65,7 @@ const pdfHeight = computed(() =>
 const emit = defineEmits<{
   (e: 'page-next'): void
   (e: 'page-prev'): void
+  (e: 'page-goto', page: number): void
 }>()
 
 const handleDocumentRender = async (data: any) => {
@@ -80,6 +82,19 @@ const handleDocumentRender = async (data: any) => {
 
 const fitToContainer = () => {
   scale.value = calculateFitToContainerScale(basePageWidth.value, basePageHeight.value, 40, 53)
+}
+
+const handlePageInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const value = parseInt(target.value, 10)
+  if (!isNaN(value) && value >= 1 && value <= totalPages.value) {
+    emit('page-goto', value)
+  }
+  pageInputValue.value = ''
+}
+
+const focusPageInput = () => {
+  pageInputValue.value = String(props.currentPage || 1)
 }
 
 const togglePostItMode = () => {
@@ -410,11 +425,6 @@ onUnmounted(() => {
           />
         </div>
       </div>
-      <div
-        class="self-stretch overflow-hidden flex items-center justify-end py-[0rem] px-[0.687rem]"
-      >
-        <div class="relative font-medium">{{ currentPage }}/{{ totalPages }}</div>
-      </div>
     </div>
     <div
       class="self-stretch h-[2.313rem] overflow-hidden shrink-0 flex items-start justify-end p-[0.625rem] box-border"
@@ -430,9 +440,17 @@ onUnmounted(() => {
           alt=""
         />
         <div
-          class="rounded-[5px] bg-gray-100 overflow-hidden flex items-center justify-center py-[0.312rem] px-[0.625rem] cursor-pointer transition-all hover:bg-gray-200 hover:shadow-md"
+          class="rounded-[5px] bg-gray-100 overflow-hidden flex items-center justify-center py-[0.312rem] px-[0.625rem] transition-all hover:bg-gray-200 hover:shadow-md"
         >
-          <div class="relative">{{ currentPage }}/{{ totalPages }}</div>
+          <input
+            v-model="pageInputValue"
+            @focus="focusPageInput"
+            @blur="pageInputValue = ''"
+            @keyup.enter="handlePageInput"
+            type="text"
+            class="w-12 text-center bg-transparent outline-none cursor-pointer text-gray-700 placeholder:text-gray-700"
+            :placeholder="`${currentPage}/${totalPages}`"
+          />
         </div>
         <img
           src="../assets/next.svg"

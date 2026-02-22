@@ -402,7 +402,7 @@ onMounted(async () => {
         >
           <div class="flex flex-col gap-3 p-3 min-w-[14rem] max-w-sm">
             <p class="text-xs text-gray-600">
-              Sei sicuro di voler chiudere il notebook? Le modifiche non salvate andranno perse.
+              Are you sure you want to close the notebook? All unsaved changes will be lost.
             </p>
             <button
               @click="
@@ -411,9 +411,9 @@ onMounted(async () => {
                   closeButtonRef?.closeOverlay()
                 }
               "
-              class="px-3 py-1.5 text-sm bg-gray-800 text-white rounded hover:bg-gray-700 active:bg-gray-900 transition-colors duration-150"
+              class="px-3 py-1.5 text-sm bg-gray-800 text-white rounded cursor-pointer hover:bg-gray-700 active:bg-gray-900 transition-colors duration-150"
             >
-              Chiudi Notebook
+              Close Notebook
             </button>
           </div>
         </HeaderButton>

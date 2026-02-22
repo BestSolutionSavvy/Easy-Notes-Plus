@@ -18,12 +18,14 @@ const pdfUrl = ref<string | null>(null)
 const pdfWidth = ref<number>(0)
 const pdfHeight = ref<number>(0)
 const pageNumber = ref<number>(1)
+const totalPages = ref<number>(0)
 
 // Loads the current PDF based on the provided notebook prop
 const loadCurrentPdf = async () => {
   if (props.notebook && props.notebook.subject) {
     isLoading.value = true
     error.value = null
+    totalPages.value = 0
     const fileName = getNotebookFileName(props.notebook)
     const subject = props.notebook.subject
     try {
@@ -53,9 +55,9 @@ const loadCurrentPdf = async () => {
 
 // Handles the PDF document render event to adjust size
 const handleDocumentRender = async (data: any) => {
-  const numPages = data.numPages
+  totalPages.value = data.numPages
   const requestedPage = props.notebook?.last_page || 1
-  pageNumber.value = Math.min(Math.max(requestedPage, 1), numPages)
+  pageNumber.value = Math.min(Math.max(requestedPage, 1), totalPages.value)
   const page = await data.getPage(pageNumber.value)
   const viewport = page.getViewport({ scale: 1 })
   const scale = calculateFitToContainerScale(viewport.width, viewport.height, 40, 60)
@@ -116,6 +118,12 @@ watch(
             @loaded="handleDocumentRender"
           />
         </div>
+      </div>
+      <div
+        v-if="!isLoading && pdfUrl && totalPages > 0"
+        class="self-stretch overflow-hidden flex items-center justify-end py-[0rem] px-[0.687rem] animate-fade-in"
+      >
+        <div class="relative font-medium">{{ pageNumber }}/{{ totalPages }}</div>
       </div>
     </div>
     <div
