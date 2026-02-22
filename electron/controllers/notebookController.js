@@ -151,6 +151,7 @@ const loadNotebook = async (fileName, subject) => {
     const subjectPath = path.join(notebooksPath, subject)
     const eznPath = await _findFileByName(subjectPath, `${fileName}.ezn`)
     const pdfPath = await _findFileByName(subjectPath, `${fileName}.pdf`)
+    const rootSubject = subject.split(path.sep)[0]
     if (eznPath) {
       const content = await fs.readFile(eznPath, 'utf-8')
       const notebook = JSON.parse(content)
