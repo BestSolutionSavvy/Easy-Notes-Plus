@@ -41,7 +41,11 @@ const props = withDefaults(defineProps<Props>(), {
   currentNotebookPage: 0,
 })
 
-const toggleMenu = () => {
+const toggleMenu = async () => {
+  if (props.variant === 'tools' && props.currentNotebook && !isMenuOpen.value) {
+    await saveNotebook()
+    console.log('Notebook saved before opening menu')
+  }
   isMenuOpen.value = !isMenuOpen.value
 }
 
@@ -190,7 +194,6 @@ onMounted(async () => {
         <h1 class="text-white text-[1.563rem] font-semibold font-['Inter'] px-2">Easy Notes</h1>
       </div>
 
-      <!-- Search Bar -->
       <div
         v-if="variant === 'tools' && props.currentNotebook"
         class="flex-1 flex items-center justify-center px-4 animate-fade-in"
