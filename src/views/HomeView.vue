@@ -21,6 +21,45 @@ const currentPdfPage = ref<number>(0)
 const headerRef = ref<InstanceType<typeof AppHeader> | null>(null)
 const notePageRightRef = ref<InstanceType<typeof NotePage> | null>(null)
 
+const STORAGE_KEY = 'easy-notes-current-notebook'
+
+const saveNotebookToSession = (notebook: Notebook) => {
+  try {
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        fileName: notebook.name,
+        subject: notebook.subject,
+        pdfFileName: notebook.pdf ? notebook.name : undefined,
+      }),
+    )
+  } catch (error) {
+    console.error('Error saving to session storage:', error)
+  }
+}
+
+const loadNotebookFromSession = (): {
+  fileName?: string
+  subject?: string
+  pdfFileName?: string
+} | null => {
+  try {
+    const data = sessionStorage.getItem(STORAGE_KEY)
+    return data ? JSON.parse(data) : null
+  } catch (error) {
+    console.error('Error loading from session storage:', error)
+    return null
+  }
+}
+
+const clearNotebookSession = () => {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY)
+  } catch (error) {
+    console.error('Error clearing session storage:', error)
+  }
+}
+
 const handleOpenNotebook = (notebook: Notebook) => {
   handleCloseNotebook()
   openedNotebook.value = notebook
@@ -29,12 +68,14 @@ const handleOpenNotebook = (notebook: Notebook) => {
   currentPdfPage.value =
     notebook.pages.find((p) => p.page_number === currentNotebookPage.value)?.slide_number ||
     pageIndex
+  saveNotebookToSession(notebook)
 }
 
 const handleCloseNotebook = () => {
   openedNotebook.value = null
   currentNotebookPage.value = 0
   currentPdfPage.value = 0
+  clearNotebookSession()
 }
 
 const handleNavigateToPage = (pageNumber: number) => {
@@ -142,27 +183,41 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 onMounted(async () => {
-  if (props.fileName && props.subject) {
+  let fileName = props.fileName
+  let subject = props.subject
+  let pdfFileName = props.pdfFileName
+
+  if (!fileName && !subject) {
+    const sessionData = loadNotebookFromSession()
+    if (sessionData) {
+      fileName = sessionData.fileName
+      subject = sessionData.subject
+      pdfFileName = sessionData.pdfFileName
+    }
+  }
+
+  if (fileName && subject) {
     try {
-      const notebook = await loadNotebook(props.fileName, props.subject)
+      const notebook = await loadNotebook(fileName, subject)
       handleOpenNotebook(notebook)
     } catch (error) {
       console.error('Error loading notebook:', error)
+      clearNotebookSession()
     }
-  } else if (props.subject && props.pdfFileName) {
+  } else if (subject && pdfFileName) {
     const newNotebook: Notebook = {
-      name: props.pdfFileName,
-      subject: props.subject || 'General',
+      name: pdfFileName,
+      subject: subject || 'General',
       date: new Date().toISOString(),
       num_notebook_pages: 100,
       pages: [],
       last_page: 1,
     }
     handleOpenNotebook(newNotebook)
-  } else if (props.subject) {
+  } else if (subject) {
     const newNotebook: Notebook = {
-      name: props.subject + ' notes',
-      subject: props.subject,
+      name: subject + ' notes',
+      subject: subject,
       date: new Date().toISOString(),
       num_notebook_pages: 100,
       pages: [],
