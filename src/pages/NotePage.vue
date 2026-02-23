@@ -86,6 +86,20 @@ const stopEditing = () => {
   isEditing.value = false
 }
 
+const handleTab = (event: KeyboardEvent) => {
+  event.preventDefault()
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const spaces = '    '
+  noteContent.value =
+    noteContent.value.substring(0, start) + spaces + noteContent.value.substring(end)
+  nextTick(() => {
+    textarea.selectionStart = textarea.selectionEnd = start + spaces.length
+  })
+}
+
 defineExpose({
   startEditing,
   stopEditing,
@@ -123,6 +137,7 @@ onMounted(() => {
         v-else
         v-model="noteContent"
         @blur="stopEditing"
+        @keydown.tab="handleTab"
         class="self-stretch flex-1 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
         placeholder="Scrivi qui le tue note..."
         ref="textareaRef"
@@ -184,15 +199,40 @@ onMounted(() => {
   margin-bottom: 0.75em;
 }
 
+.markdown-content :deep(ul ul) {
+  list-style-type: circle;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.markdown-content :deep(ul ul ul) {
+  list-style-type: square;
+}
+
 .markdown-content :deep(ol) {
   list-style-type: decimal;
   margin-left: 1.5em;
   margin-bottom: 0.75em;
 }
 
+.markdown-content :deep(ol ol) {
+  list-style-type: lower-alpha;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.markdown-content :deep(ol ol ol) {
+  list-style-type: lower-roman;
+}
+
 .markdown-content :deep(li) {
   margin-bottom: 0.25em;
   line-height: 1.6;
+}
+
+.markdown-content :deep(li > ul),
+.markdown-content :deep(li > ol) {
+  margin-top: 0.25em;
 }
 
 .markdown-content :deep(code) {

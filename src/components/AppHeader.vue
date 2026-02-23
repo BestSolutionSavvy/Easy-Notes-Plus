@@ -44,7 +44,6 @@ const props = withDefaults(defineProps<Props>(), {
 const toggleMenu = async () => {
   if (props.variant === 'tools' && props.currentNotebook && !isMenuOpen.value) {
     await saveNotebook()
-    console.log('Notebook saved before opening menu')
   }
   isMenuOpen.value = !isMenuOpen.value
 }

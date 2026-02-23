@@ -81,7 +81,7 @@ const handleDocumentRender = async (data: any) => {
 }
 
 const fitToContainer = () => {
-  scale.value = calculateFitToContainerScale(basePageWidth.value, basePageHeight.value, 40, 53)
+  scale.value = calculateFitToContainerScale(basePageWidth.value, basePageHeight.value, 40, 60)
 }
 
 const handlePageInput = (event: Event) => {
@@ -368,7 +368,7 @@ onUnmounted(() => {
       <div v-else-if="!pdfUrl" class="flex items-center justify-center h-full w-full">
         <div class="text-gray-400">Select a notebook to view PDF</div>
       </div>
-      <div v-else class="w-[40vw] h-[53vh] relative overflow-auto flex justify-center">
+      <div v-else class="w-[40vw] h-[60vh] relative overflow-auto flex justify-center">
         <div
           class="pdf-wrapper relative"
           :class="{ 'post-it-cursor': isPostItMode }"
