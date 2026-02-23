@@ -27,7 +27,8 @@ const handleOpenNotebook = (notebook: Notebook) => {
   const pageIndex = notebook.last_page || 1
   currentNotebookPage.value = pageIndex
   currentPdfPage.value =
-    notebook.pages.find((p) => p.page_number === currentNotebookPage.value)?.slide_number || 1
+    notebook.pages.find((p) => p.page_number === currentNotebookPage.value)?.slide_number ||
+    pageIndex
 }
 
 const handleCloseNotebook = () => {
@@ -42,6 +43,8 @@ const handleNavigateToPage = (pageNumber: number) => {
     const page = openedNotebook.value.pages.find((p) => p.page_number === pageNumber)
     if (page) {
       currentPdfPage.value = page.slide_number
+    } else {
+      currentPdfPage.value = pageNumber
     }
   }
 }
