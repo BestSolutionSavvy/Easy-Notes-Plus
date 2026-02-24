@@ -131,7 +131,7 @@ onMounted(() => {
         :class="{ 'text-gray-400 italic': !noteContent }"
       >
         <div v-if="noteContent" v-html="renderedContent"></div>
-        <div v-else>Clicca per aggiungere note...</div>
+        <div v-else>Click to start editing...</div>
       </div>
       <textarea
         v-else
@@ -139,7 +139,7 @@ onMounted(() => {
         @blur="stopEditing"
         @keydown.tab="handleTab"
         class="self-stretch flex-1 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
-        placeholder="Scrivi qui le tue note..."
+        placeholder="Write your notes here..."
         ref="textareaRef"
       ></textarea>
     </div>
