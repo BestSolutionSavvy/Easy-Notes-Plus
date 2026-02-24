@@ -24,7 +24,7 @@ const emit = defineEmits<{
           :src="logo"
           alt="Easy Notes Logo"
         />
-        <div class="absolute top-[0.281rem] left-[4.219rem] font-semibold">Easy Notes</div>
+        <div class="absolute top-[0.281rem] left-[4.219rem] font-semibold">Easy Notes +</div>
       </div>
     </div>
     <div

@@ -102,9 +102,9 @@ const handleThemeChange = () => {
       </div>
 
       <div class="w-full flex flex-col gap-3 p-6 bg-blue-50 rounded-lg border border-blue-200">
-        <div class="text-lg font-semibold text-blue-800">🛈 About Easy Notes</div>
+        <div class="text-lg font-semibold text-blue-800">🛈 About Easy Notes Plus</div>
         <div class="text-sm text-blue-700">
-          <p class="mb-2">Easy Notes organizes your study materials as follows:</p>
+          <p class="mb-2">Easy Notes Plus organizes your study materials as follows:</p>
           <ul class="list-disc list-inside space-y-1 ml-2">
             <li>The root folder contains subject folders (e.g., Math, Physics)</li>
             <li>Each subject can have PDFs and notebooks in any subfolder structure</li>

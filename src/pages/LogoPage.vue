@@ -26,7 +26,7 @@ const handleLogoClick = () => {
           @click="handleLogoClick"
           alt=""
         />
-        <div class="relative font-semibold">Easy Notes</div>
+        <div class="relative font-semibold">Easy Notes +</div>
       </div>
       <div
         class="self-stretch overflow-hidden flex items-center justify-center text-[1.875rem] text-gray-300"
