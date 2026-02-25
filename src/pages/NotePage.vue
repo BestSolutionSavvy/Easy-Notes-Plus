@@ -3,6 +3,25 @@ import { ref, watch, computed, nextTick, onMounted } from 'vue'
 import type { Notebook } from '../types/notebook'
 import { marked } from 'marked'
 
+const mdRenderer = new marked.Renderer()
+;(mdRenderer as any).link = (...args: any[]) => {
+  let href: string | null = null
+  let title: string | null = null
+  let text = ''
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+    href = args[0].href ?? null
+    title = args[0].title ?? null
+    text = args[0].text ?? ''
+  } else {
+    href = args[0] ?? null
+    title = args[1] ?? null
+    text = args[2] ?? ''
+  }
+  const safeHref = href || ''
+  const titleAttr = title ? ` title="${title}"` : ''
+  return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noreferrer noopener">${text}</a>`
+}
+
 const isEditing = ref(false)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const noteContent = ref<string>('')
@@ -27,7 +46,7 @@ const currentPageData = computed(() => {
 
 const renderedContent = computed(() => {
   if (noteContent.value) {
-    return marked.parse(noteContent.value)
+    return marked.parse(noteContent.value, { renderer: mdRenderer })
   } else {
     return ''
   }

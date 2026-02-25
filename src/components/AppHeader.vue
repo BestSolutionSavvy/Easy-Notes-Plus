@@ -190,7 +190,7 @@ onMounted(async () => {
           :class="{ 'rotate-180': isMenuOpen }"
           @click="toggleMenu"
         />
-        <h1 class="text-white text-[1.563rem] font-semibold font-['Inter'] px-2">Easy Notes +</h1>
+        <h1 class="text-white text-[1.563rem] font-semibold font-['Inter'] px-2">Easy Notes+</h1>
       </div>
 
       <div

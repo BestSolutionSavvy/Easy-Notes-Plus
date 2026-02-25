@@ -20,11 +20,11 @@ const emit = defineEmits<{
         class="absolute top-[calc(50%_-_22.5px)] left-[calc(50%_-_124px)] w-[15.5rem] h-[2.813rem] overflow-hidden shrink-0"
       >
         <img
-          class="absolute top-[0.313rem] left-[1.094rem] w-[2.188rem] h-[2.188rem] object-cover"
+          class="absolute top-[0.313rem] left-[0.6rem] w-[2.188rem] h-[2.188rem] object-cover"
           :src="logo"
           alt="Easy Notes Logo"
         />
-        <div class="absolute top-[0.281rem] left-[4.219rem] font-semibold">Easy Notes +</div>
+        <div class="absolute top-[0.281rem] left-[3.5rem] font-semibold">Easy Notes+</div>
       </div>
     </div>
     <div
