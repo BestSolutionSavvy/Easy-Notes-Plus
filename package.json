@@ -4,7 +4,7 @@
   "author": {
     "name": "BSS"
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -60,7 +60,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "build": {
-    "appId": "com.sevet.easy-notes-plus",
+    "appId": "com.bss.easy-notes-plus",
     "productName": "Easy Notes Plus",
     "files": [
       "dist/**/*",
