@@ -20,7 +20,12 @@ const shortcutSections: ShortcutSection[] = [
   },
   {
     title: 'During editing',
-    shortcuts: [{ key: 'Ctrl + ← →', description: 'Navigate while writing' }],
+    shortcuts: [
+      { key: 'Ctrl + ← →', description: 'Navigate while writing' },
+      { key: 'Ctrl + B', description: 'Bold text' },
+      { key: 'Ctrl + I', description: 'Italic text' },
+      { key: 'Ctrl + U', description: 'Underline text' },
+    ],
   },
   {
     title: 'Textbox mode',

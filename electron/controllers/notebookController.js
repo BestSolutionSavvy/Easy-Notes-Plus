@@ -4,6 +4,13 @@ const fsSync = require('fs')
 const { getConfig } = require('../config/storage')
 const { PDFDocument } = require('pdf-lib')
 
+// Helper function to check if a date is valid
+const _isValidDate = (dateString) => {
+  if (!dateString) return false
+  const date = new Date(dateString)
+  return date instanceof Date && !isNaN(date.getTime())
+}
+
 // Helper function to extract date from PDF metadata
 const _getPdfDate = async (pdfPath) => {
   try {
@@ -104,7 +111,10 @@ const loadNotebooks = async () => {
               }
             }
             notebook.pdf = pdfPath
-            notebooks.push(notebook)
+            // Only add notebook if it has a valid date
+            if (_isValidDate(notebook.date)) {
+              notebooks.push(notebook)
+            }
           } catch (error) {
             console.error(`Error processing ${pdfPath}:`, error)
           }
@@ -126,7 +136,10 @@ const loadNotebooks = async () => {
               const content = await fs.readFile(eznPath, 'utf-8')
               const notebook = JSON.parse(content)
               notebook.subject = subject
-              notebooks.push(notebook)
+              // Only add notebook if it has a valid date
+              if (_isValidDate(notebook.date)) {
+                notebooks.push(notebook)
+              }
             }
           } catch (error) {
             console.error(`Error processing ${eznPath}:`, error)

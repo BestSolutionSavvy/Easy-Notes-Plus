@@ -119,6 +119,37 @@ const handleTab = (event: KeyboardEvent) => {
   })
 }
 
+const wrapText = (prefix: string, suffix: string) => {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selectedText = noteContent.value.substring(start, end)
+  const wrappedText = prefix + selectedText + suffix
+  noteContent.value =
+    noteContent.value.substring(0, start) + wrappedText + noteContent.value.substring(end)
+  nextTick(() => {
+    textarea.selectionStart = start + prefix.length
+    textarea.selectionEnd = end + prefix.length
+    textarea.focus()
+  })
+}
+
+const handleBold = (event: KeyboardEvent) => {
+  event.preventDefault()
+  wrapText('**', '**')
+}
+
+const handleItalic = (event: KeyboardEvent) => {
+  event.preventDefault()
+  wrapText('_', '_')
+}
+
+const handleUnderline = (event: KeyboardEvent) => {
+  event.preventDefault()
+  wrapText('<u>', '</u>')
+}
+
 defineExpose({
   startEditing,
   stopEditing,
@@ -157,6 +188,9 @@ onMounted(() => {
         v-model="noteContent"
         @blur="stopEditing"
         @keydown.tab="handleTab"
+        @keydown.ctrl.b="handleBold"
+        @keydown.ctrl.i="handleItalic"
+        @keydown.ctrl.u="handleUnderline"
         class="self-stretch flex-1 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
         placeholder="Write your notes here..."
         ref="textareaRef"
@@ -210,6 +244,10 @@ onMounted(() => {
 
 .markdown-content :deep(em) {
   font-style: italic;
+}
+
+.markdown-content :deep(u) {
+  text-decoration: underline;
 }
 
 .markdown-content :deep(ul) {
