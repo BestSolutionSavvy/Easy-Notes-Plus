@@ -1,30 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, computed, nextTick, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import type { Notebook } from '../types/notebook'
-import { marked } from 'marked'
-
-const mdRenderer = new marked.Renderer()
-;(mdRenderer as any).link = (...args: any[]) => {
-  let href: string | null = null
-  let title: string | null = null
-  let text = ''
-  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
-    href = args[0].href ?? null
-    title = args[0].title ?? null
-    text = args[0].text ?? ''
-  } else {
-    href = args[0] ?? null
-    title = args[1] ?? null
-    text = args[2] ?? ''
-  }
-  const safeHref = href || ''
-  const titleAttr = title ? ` title="${title}"` : ''
-  return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noreferrer noopener">${text}</a>`
-}
-
-const isEditing = ref(false)
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
-const noteContent = ref<string>('')
+import SmartTextArea from '../components/SmartTextArea.vue'
 
 interface Props {
   notebook?: Notebook | null
@@ -36,26 +13,39 @@ const props = withDefaults(defineProps<Props>(), {
   currentPage: 0,
 })
 
+const noteContent = ref<string>('')
+const smartTextAreaRef = ref<InstanceType<typeof SmartTextArea> | null>(null)
+
 const currentPageData = computed(() => {
   if (props.notebook?.pages) {
     return props.notebook.pages.find((p) => p.page_number === props.currentPage)
-  } else {
-    return null
   }
+  return null
 })
 
-const renderedContent = computed(() => {
-  if (noteContent.value) {
-    return marked.parse(noteContent.value, { renderer: mdRenderer })
-  } else {
-    return ''
+const saveNote = () => {
+  if (props.notebook && props.notebook.pages) {
+    const pageIndex = props.notebook.pages.findIndex((p) => p.page_number === props.currentPage)
+    if (pageIndex !== -1) {
+      const page = props.notebook.pages[pageIndex]
+      if (page) page.note_content = noteContent.value
+    } else if (noteContent.value.trim()) {
+      props.notebook.pages.push({
+        page_number: props.currentPage,
+        slide_number: props.currentPage,
+        note_content: noteContent.value,
+        text_boxes: [],
+        highlights: [],
+      })
+    }
   }
-})
+}
 
 watch(
   () => props.currentPage,
   () => {
     noteContent.value = currentPageData.value?.note_content || ''
+    smartTextAreaRef.value?.clearErrors()
   },
 )
 
@@ -66,94 +56,12 @@ watch(
   },
 )
 
-watch(noteContent, () => {
-  if (isEditing.value) {
-    saveNote()
-  }
-})
+watch(noteContent, saveNote)
 
-const saveNote = (pageNumber?: number) => {
-  if (props.notebook && props.notebook.pages) {
-    const targetPage = pageNumber !== undefined ? pageNumber : props.currentPage
-    const pageIndex = props.notebook.pages.findIndex((p) => p.page_number === targetPage)
+const startEditing = () => smartTextAreaRef.value?.startEditing()
+const stopEditing = () => smartTextAreaRef.value?.stopEditing()
 
-    if (pageIndex !== -1) {
-      const page = props.notebook.pages[pageIndex]
-      if (page) {
-        page.note_content = noteContent.value
-      }
-    } else if (noteContent.value.trim()) {
-      props.notebook.pages.push({
-        page_number: targetPage,
-        slide_number: targetPage,
-        note_content: noteContent.value,
-        text_boxes: [],
-        highlights: [],
-      })
-    }
-  }
-}
-
-const startEditing = () => {
-  isEditing.value = true
-  nextTick(() => {
-    textareaRef.value?.focus()
-  })
-}
-
-const stopEditing = () => {
-  isEditing.value = false
-}
-
-const handleTab = (event: KeyboardEvent) => {
-  event.preventDefault()
-  const textarea = textareaRef.value
-  if (!textarea) return
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const spaces = '    '
-  noteContent.value =
-    noteContent.value.substring(0, start) + spaces + noteContent.value.substring(end)
-  nextTick(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + spaces.length
-  })
-}
-
-const wrapText = (prefix: string, suffix: string) => {
-  const textarea = textareaRef.value
-  if (!textarea) return
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const selectedText = noteContent.value.substring(start, end)
-  const wrappedText = prefix + selectedText + suffix
-  noteContent.value =
-    noteContent.value.substring(0, start) + wrappedText + noteContent.value.substring(end)
-  nextTick(() => {
-    textarea.selectionStart = start + prefix.length
-    textarea.selectionEnd = end + prefix.length
-    textarea.focus()
-  })
-}
-
-const handleBold = (event: KeyboardEvent) => {
-  event.preventDefault()
-  wrapText('**', '**')
-}
-
-const handleItalic = (event: KeyboardEvent) => {
-  event.preventDefault()
-  wrapText('_', '_')
-}
-
-const handleUnderline = (event: KeyboardEvent) => {
-  event.preventDefault()
-  wrapText('<u>', '</u>')
-}
-
-defineExpose({
-  startEditing,
-  stopEditing,
-})
+defineExpose({ startEditing, stopEditing })
 
 onMounted(() => {
   noteContent.value = currentPageData.value?.note_content || ''
@@ -164,196 +72,13 @@ onMounted(() => {
   <div
     class="h-full flex-1 w-full relative rounded-tl-none rounded-tr-[10px] rounded-br-[10px] rounded-bl-none bg-gray-100 overflow-hidden shrink-0 flex flex-col items-center py-[1.875rem] px-[1.25rem] box-border gap-[0.625rem] text-center text-[1.25rem] text-darkslategray font-inter"
   >
-    <div class="self-stretch overflow-hidden flex items-end py-[0rem] px-[0.625rem]">
+    <div class="self-stretch overflow-hidden flex items-center py-[0rem] px-[0.625rem]">
       <div class="overflow-hidden flex items-center justify-center gap-[0.312rem]">
         <img src="../assets/notes.svg" class="w-[1rem] relative max-h-full" alt="" />
         <b class="relative">Notes for page {{ props.currentPage }}</b>
         <div class="h-[1.125rem] w-[0.313rem] relative overflow-hidden shrink-0" />
       </div>
     </div>
-    <div
-      class="self-stretch flex-1 flex flex-col items-start text-left text-[1.5rem] text-gray-500 min-h-0"
-    >
-      <div
-        v-if="!isEditing"
-        @click="startEditing"
-        class="self-stretch grow h-0 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] text-gray-500 text-[1rem] font-inter leading-normal cursor-pointer hover:bg-gray-50 transition-colors overflow-y-auto markdown-content"
-        :class="{ 'text-gray-400 italic': !noteContent }"
-      >
-        <div v-if="noteContent" v-html="renderedContent"></div>
-        <div v-else>Click to start editing...</div>
-      </div>
-      <textarea
-        v-else
-        v-model="noteContent"
-        @blur="stopEditing"
-        @keydown.tab="handleTab"
-        @keydown.ctrl.b="handleBold"
-        @keydown.ctrl.i="handleItalic"
-        @keydown.ctrl.u="handleUnderline"
-        class="self-stretch flex-1 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
-        placeholder="Write your notes here..."
-        ref="textareaRef"
-      ></textarea>
-    </div>
+    <SmartTextArea ref="smartTextAreaRef" v-model="noteContent" />
   </div>
 </template>
-
-<style scoped>
-.markdown-content :deep(h1) {
-  font-size: 2em;
-  font-weight: 700;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  color: #1a1a1a;
-}
-
-.markdown-content :deep(h2) {
-  font-size: 1.5em;
-  font-weight: 700;
-  margin-top: 0.5em;
-  margin-bottom: 0.4em;
-  color: #1a1a1a;
-}
-
-.markdown-content :deep(h3) {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin-top: 0.5em;
-  margin-bottom: 0.3em;
-  color: #2a2a2a;
-}
-
-.markdown-content :deep(h4) {
-  font-size: 1.1em;
-  font-weight: 600;
-  margin-top: 0.4em;
-  margin-bottom: 0.3em;
-  color: #2a2a2a;
-}
-
-.markdown-content :deep(p) {
-  margin-bottom: 0.75em;
-  line-height: 1.6;
-}
-
-.markdown-content :deep(strong) {
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.markdown-content :deep(em) {
-  font-style: italic;
-}
-
-.markdown-content :deep(u) {
-  text-decoration: underline;
-}
-
-.markdown-content :deep(ul) {
-  list-style-type: disc;
-  margin-left: 1.5em;
-  margin-bottom: 0.75em;
-}
-
-.markdown-content :deep(ul ul) {
-  list-style-type: circle;
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
-
-.markdown-content :deep(ul ul ul) {
-  list-style-type: square;
-}
-
-.markdown-content :deep(ol) {
-  list-style-type: decimal;
-  margin-left: 1.5em;
-  margin-bottom: 0.75em;
-}
-
-.markdown-content :deep(ol ol) {
-  list-style-type: lower-alpha;
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
-
-.markdown-content :deep(ol ol ol) {
-  list-style-type: lower-roman;
-}
-
-.markdown-content :deep(li) {
-  margin-bottom: 0.25em;
-  line-height: 1.6;
-}
-
-.markdown-content :deep(li > ul),
-.markdown-content :deep(li > ol) {
-  margin-top: 0.25em;
-}
-
-.markdown-content :deep(code) {
-  background-color: #f3f4f6;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-  color: #d63384;
-}
-
-.markdown-content :deep(pre) {
-  background-color: #f3f4f6;
-  padding: 1em;
-  border-radius: 5px;
-  overflow-x: auto;
-  margin-bottom: 0.75em;
-}
-
-.markdown-content :deep(pre code) {
-  background-color: transparent;
-  padding: 0;
-  color: #1a1a1a;
-}
-
-.markdown-content :deep(blockquote) {
-  border-left: 4px solid #4766d4;
-  padding-left: 1em;
-  margin-left: 0;
-  margin-bottom: 0.75em;
-  color: #4a5568;
-  font-style: italic;
-}
-
-.markdown-content :deep(a) {
-  color: #4766d4;
-  text-decoration: underline;
-}
-
-.markdown-content :deep(a:hover) {
-  color: #25356e;
-}
-
-.markdown-content :deep(hr) {
-  border: none;
-  border-top: 2px solid #e5e7eb;
-  margin: 1em 0;
-}
-
-.markdown-content :deep(table) {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 0.75em;
-}
-
-.markdown-content :deep(th),
-.markdown-content :deep(td) {
-  border: 1px solid #e5e7eb;
-  padding: 0.5em;
-  text-align: left;
-}
-
-.markdown-content :deep(th) {
-  background-color: #f3f4f6;
-  font-weight: 600;
-}
-</style>
