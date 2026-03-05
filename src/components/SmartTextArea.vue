@@ -66,6 +66,24 @@ const selectedError = ref<(LTMatch & { elementIdx: number }) | null>(null)
 const popupPos = ref({ x: 0, y: 0 })
 const ltLastCheck = ref(0)
 const ltTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const ignoredWords = ref<Set<string>>(new Set())
+
+// Replaces markdown syntax chars with spaces of the same length so LT offsets stay valid.
+// noteContent (original) is never modified — renderedContent always uses it as-is.
+const stripMarkdownForLT = (text: string): string => {
+  return text
+    .replace(/```[\s\S]*?```/g, (m) => ' '.repeat(m.length)) // fenced code
+    .replace(/`[^`\n]+`/g, (m) => ' '.repeat(m.length)) // inline code
+    .replace(/^#{1,6} /gm, (m) => ' '.repeat(m.length)) // headings
+    .replace(/^> ?/gm, (m) => ' '.repeat(m.length)) // blockquotes
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, (m) => ' '.repeat(m.length)) // images
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, (m, t) => ' ' + t + ' '.repeat(m.length - t.length - 1)) // links
+    .replace(/\*\*(.+?)\*\*/gs, (m, t) => '  ' + t + '  ') // bold **
+    .replace(/__(.+?)__/gs, (m, t) => '  ' + t + '  ') // bold __
+    .replace(/~~(.+?)~~/gs, (m, t) => '  ' + t + '  ') // strikethrough
+    .replace(/(?<!\*)\*(?!\*)/g, ' ') // italic *
+    .replace(/(?<![a-zA-Z0-9])_(.+?)_(?![a-zA-Z0-9])/gs, (m, t) => ' ' + t + ' ') // italic _
+}
 
 const doCheckSpelling = async () => {
   if (!noteContent.value) {
@@ -74,14 +92,18 @@ const doCheckSpelling = async () => {
   }
   ltLastCheck.value = Date.now()
   try {
-    const body = new URLSearchParams({ text: noteContent.value, language: 'auto' })
+    const stripped = stripMarkdownForLT(noteContent.value)
+    const body = new URLSearchParams({ text: stripped, language: 'auto' })
     const res = await fetch(LT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
     })
     const data = await res.json()
-    spellErrors.value = (data.matches as LTMatch[]) || []
+    spellErrors.value = ((data.matches as LTMatch[]) || []).filter((match) => {
+      const word = noteContent.value.substring(match.offset, match.offset + match.length)
+      return !ignoredWords.value.has(word.toLowerCase())
+    })
   } catch (e) {
     console.error('[LanguageTool]', e)
   }
@@ -98,6 +120,18 @@ const clearErrors = () => {
   spellErrors.value = []
   selectedError.value = null
   if (noteContent.value) scheduleSpellCheck()
+}
+
+const ignoreWord = () => {
+  if (!selectedError.value) return
+  const word = noteContent.value
+    .substring(selectedError.value.offset, selectedError.value.offset + selectedError.value.length)
+    .toLowerCase()
+  ignoredWords.value.add(word)
+  spellErrors.value = spellErrors.value.filter(
+    (e) => noteContent.value.substring(e.offset, e.offset + e.length).toLowerCase() !== word,
+  )
+  selectedError.value = null
 }
 
 const applyCorrection = (replacement: string) => {
@@ -154,20 +188,86 @@ const closePopupOnOutside = (e: MouseEvent) => {
 // ── Rendered markdown with error highlights ───────────────────────────────────
 const renderedContent = computed(() => {
   if (!noteContent.value) return ''
-  if (!spellErrors.value.length) {
-    return marked.parse(noteContent.value, { renderer: mdRenderer }) as string
+
+  // Step 1: render original markdown — never touched by mark injection
+  const html = marked.parse(noteContent.value, { renderer: mdRenderer }) as string
+
+  if (!spellErrors.value.length) return html
+
+  // Step 2: for each LT error, determine which *occurrence* of that word it is in the source.
+  // e.g. if "per" appears at offsets [10, 40, 80] and LT flags offset 40, that's occurrence #1 (0-based).
+  // This lets us mark exactly the right one in the rendered HTML.
+  const makePattern = (word: string) => {
+    const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const lb = /^\w/.test(word) ? '\\b' : ''
+    const rb = /\w$/.test(word) ? '\\b' : ''
+    return lb + esc + rb
   }
-  const sorted = [...spellErrors.value]
-    .map((e, i) => ({ ...e, _idx: i }))
-    .sort((a, b) => b.offset - a.offset)
-  let text = noteContent.value
-  for (const err of sorted) {
-    const before = text.substring(0, err.offset)
-    const word = text.substring(err.offset, err.offset + err.length)
-    const after = text.substring(err.offset + err.length)
-    text = `${before}<mark class="lt-error" data-lt-idx="${err._idx}">${word}</mark>${after}`
+
+  type ErrorTarget = { word: string; nthOccurrence: number; idx: number }
+  const errorTargets: ErrorTarget[] = spellErrors.value.map((e, idx) => {
+    const word = noteContent.value.substring(e.offset, e.offset + e.length)
+    const before = noteContent.value.substring(0, e.offset)
+    const nthOccurrence = (before.match(new RegExp(makePattern(word), 'g')) || []).length
+    return { word, nthOccurrence, idx }
+  })
+
+  // Map "word::nth" → error index for fast lookup
+  const markMap = new Map<string, number>()
+  for (const t of errorTargets) {
+    markMap.set(`${t.word}::${t.nthOccurrence}`, t.idx)
   }
-  return marked.parse(text, { renderer: mdRenderer }) as string
+
+  // Global occurrence counters shared across all text-node segments of the HTML
+  const seenCounts = new Map<string, number>()
+  const uniqueWords = new Set(errorTargets.map((t) => t.word))
+
+  // Step 3: walk HTML text-node segments, count occurrences, mark only the right ones
+  type Hit = { start: number; end: number; errorIdx: number; word: string }
+
+  return html.replace(/(<[^>]+>)|([^<]+)/g, (match, tag, text: string) => {
+    if (tag) return tag
+    if (!text) return match
+
+    // Collect all matches of any error word in this text segment (in source order)
+    type RawHit = { start: number; end: number; word: string }
+    const rawHits: RawHit[] = []
+    for (const word of uniqueWords) {
+      const re = new RegExp(makePattern(word), 'g')
+      let m: RegExpExecArray | null
+      while ((m = re.exec(text)) !== null) {
+        rawHits.push({ start: m.index, end: m.index + m[0].length, word })
+      }
+    }
+    rawHits.sort((a, b) => a.start - b.start)
+
+    // Walk matches in order: track occurrence count, keep only targeted ones
+    const hits: Hit[] = []
+    let lastEnd = -1
+    for (const rh of rawHits) {
+      if (rh.start < lastEnd) continue // skip overlapping
+      const count = seenCounts.get(rh.word) ?? 0
+      seenCounts.set(rh.word, count + 1)
+      const key = `${rh.word}::${count}`
+      if (markMap.has(key)) {
+        hits.push({ start: rh.start, end: rh.end, word: rh.word, errorIdx: markMap.get(key)! })
+        lastEnd = rh.end
+      }
+    }
+
+    if (!hits.length) return text
+
+    // Rebuild text node with <mark> injected only at the correct positions
+    let result = ''
+    let pos = 0
+    for (const h of hits) {
+      result += text.slice(pos, h.start)
+      result += `<mark class="lt-error" data-lt-idx="${h.errorIdx}">${h.word}</mark>`
+      pos = h.end
+    }
+    result += text.slice(pos)
+    return result
+  })
 })
 
 // ── Keyboard helpers ──────────────────────────────────────────────────────────
@@ -303,6 +403,7 @@ defineExpose({ startEditing, stopEditing, clearErrors })
         <span v-if="!selectedError.replacements.length" class="lt-no-suggestions"
           >No suggestions</span
         >
+        <button class="lt-btn lt-btn-ignore" @click="ignoreWord">Ignore</button>
       </div>
     </div>
   </Teleport>
@@ -509,5 +610,13 @@ defineExpose({ startEditing, stopEditing, clearErrors })
   color: #a0aec0;
   font-size: 0.8rem;
   align-self: center;
+}
+.lt-btn-ignore {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #a0aec0;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
 }
 </style>
