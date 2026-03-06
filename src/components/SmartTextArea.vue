@@ -339,11 +339,11 @@ defineExpose({ startEditing, stopEditing, clearErrors })
     class="self-stretch flex-1 flex flex-col items-start text-left text-[1.5rem] text-gray-500 min-h-0"
   >
     <!-- Preview / Textarea wrapper with floating button -->
-    <div class="relative self-stretch flex-1 min-h-0">
+    <div class="relative self-stretch flex-1 min-h-0 flex flex-col">
       <div
         v-if="!isEditing"
         @click="handlePreviewClick"
-        class="self-stretch h-full rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] text-gray-500 text-[1rem] font-inter leading-normal cursor-pointer hover:bg-gray-50 transition-colors overflow-y-auto markdown-content"
+        class="self-stretch grow h-0 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] text-gray-500 text-[1rem] font-inter leading-normal cursor-pointer hover:bg-gray-50 transition-colors overflow-y-auto markdown-content"
         :class="{ 'text-gray-400 italic': !noteContent }"
       >
         <div v-if="noteContent" v-html="renderedContent"></div>
@@ -357,13 +357,13 @@ defineExpose({ startEditing, stopEditing, clearErrors })
         @keydown.ctrl.b="handleBold"
         @keydown.ctrl.i="handleItalic"
         @keydown.ctrl.u="handleUnderline"
-        class="self-stretch w-full h-full rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
+        class="self-stretch w-full grow h-0 rounded-[10px] border-gainsboro-100 border-solid border-[1px] py-[0.937rem] px-[1.25rem] resize-none focus:outline-none text-gray-500 text-[1rem] font-inter leading-normal"
         placeholder="Write your notes here..."
         ref="textareaRef"
       ></textarea>
 
       <!-- Floating fix-all button -->
-      <div class="absolute bottom-3 right-3 z-10">
+      <div class="absolute bottom-3 right-4 z-10">
         <IconButton
           :icon="spellCheckIcon"
           alt="Fix all spelling errors"

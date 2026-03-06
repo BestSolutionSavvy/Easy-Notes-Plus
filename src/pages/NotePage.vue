@@ -70,7 +70,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="h-full flex-1 w-full relative rounded-tl-none rounded-tr-[10px] rounded-br-[10px] rounded-bl-none bg-gray-100 overflow-hidden shrink-0 flex flex-col items-center py-[1.875rem] px-[1.25rem] box-border gap-[0.625rem] text-center text-[1.25rem] text-darkslategray font-inter"
+    class="h-full flex-1 min-h-0 w-full relative rounded-tl-none rounded-tr-[10px] rounded-br-[10px] rounded-bl-none bg-gray-100 overflow-hidden flex flex-col items-center py-[1.875rem] px-[1.25rem] box-border gap-[0.625rem] text-center text-[1.25rem] text-darkslategray font-inter"
   >
     <div class="self-stretch overflow-hidden flex items-center py-[0rem] px-[0.625rem]">
       <div class="overflow-hidden flex items-center justify-center gap-[0.312rem]">
