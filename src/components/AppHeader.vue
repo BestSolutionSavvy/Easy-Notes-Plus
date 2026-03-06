@@ -164,6 +164,14 @@ onMounted(async () => {
     notebooks.value = []
   }
 })
+
+const refreshNotebooks = async () => {
+  try {
+    notebooks.value = await loadNotebooks()
+  } catch (error) {
+    console.error('Error refreshing notebooks:', error)
+  }
+}
 </script>
 
 <template>
@@ -296,6 +304,7 @@ onMounted(async () => {
           :text="'Open Notebook'"
           :direction="'left'"
           :icon="openNotebookIcon"
+          @open-overlay="refreshNotebooks"
         >
           <div class="max-h-96 overflow-y-auto">
             <div
