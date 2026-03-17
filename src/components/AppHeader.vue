@@ -13,6 +13,7 @@ import {
   loadNotebooks,
   saveNotebook as saveNotebookUtil,
   getNotebookFileName,
+  getNotebookIcon,
 } from '../lib/notebookUtils'
 
 const isMenuOpen = ref(false)
@@ -318,8 +319,14 @@ const refreshNotebooks = async () => {
                 }
               "
             >
-              <div class="font-medium text-darkslateblue">
-                {{ notebook.name }}
+              <div class="flex items-center gap-2">
+                <div class="font-medium text-darkslateblue">
+                  {{ notebook.name }}
+                </div>
+                <img
+                  :src="getNotebookIcon(notebook.type)"
+                  class="w-4 h-4 flex-shrink-0 opacity-85"
+                />
               </div>
               <div class="text-sm text-gray-500">{{ notebook.subject }}</div>
             </div>

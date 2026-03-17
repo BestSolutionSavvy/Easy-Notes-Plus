@@ -1,4 +1,7 @@
 import type { Notebook } from '../types/notebook'
+import pdfIcon from '../assets/pdf.svg'
+import notebookIcon from '../assets/open-notebook.svg'
+import notesIcon from '../assets/notes.svg'
 
 // Type definition for the Electron API
 declare global {
@@ -99,4 +102,14 @@ export const getButtonsBackground = (type: 'pdf' | 'simple' | 'full' = 'simple')
     full: 'bg-orangered-100',
   }
   return backgrounds[type]
+}
+
+// Get icon base on notebook type
+export const getNotebookIcon = (type: 'pdf' | 'simple' | 'full' = 'simple'): string => {
+  const icons: Record<'pdf' | 'simple' | 'full', string> = {
+    pdf: pdfIcon,
+    simple: notesIcon,
+    full: notebookIcon,
+  }
+  return icons[type]
 }
