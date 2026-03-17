@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { loadNotebooks, deleteNotebook, getNotebookFileName } from '../lib/notebookUtils'
+import {
+  loadNotebooks,
+  deleteNotebook,
+  getNotebookFileName,
+  getNotebookGradient,
+  getButtonsBackground,
+} from '../lib/notebookUtils'
 import loadIcon from '../assets/load.svg'
 import trashIcon from '../assets/trash.svg'
 import reloadIcon from '../assets/reload.svg'
@@ -140,7 +146,7 @@ onUnmounted(() => {
   >
     <div class="pt-5 flex-1 w-full flex flex-col items-center overflow-y-auto min-h-0" dir="rtl">
       <div dir="ltr">
-        <div v-if="isLoading" class="flex flex-col items-center justify-center gap-4">
+        <div v-if="isLoading" class="mt-10 flex flex-col items-center justify-center gap-4">
           <div
             class="animate-spin rounded-full h-12 w-12 border-4 border-gainsboro-200 border-t-darkslateblue-100"
           ></div>
@@ -186,26 +192,26 @@ onUnmounted(() => {
                 :title="notebook.name"
                 :date="notebook.date"
                 :index="index"
-                :gradient="'[background:linear-gradient(90deg,_#fff0ca,_#fff8e6_65.38%,_#fffcf5)]'"
+                :gradient="getNotebookGradient(notebook.type)"
                 @click="onSelectNotebook(notebook)"
                 :buttons="[
                   {
                     icon: loadIcon,
                     alt: 'Edit Notebook',
-                    background: 'bg-orangered-100',
+                    background: getButtonsBackground(notebook.type),
                     onClick: () => onLoadNotebook(subject, notebook),
                   },
                   {
                     icon: trashIcon,
                     alt: 'Delete Note',
-                    background: 'bg-orangered-100',
+                    background: getButtonsBackground(notebook.type),
                     onClick: () => handleDeleteNotebook(notebook),
                   },
                 ]"
               />
             </ul>
           </li>
-          <div class="w-full flex justify-end pb-2">
+          <div class="w-full flex justify-center pb-2">
             <IconButton
               :icon="reloadIcon"
               alt="Reload notebooks"
