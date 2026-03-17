@@ -99,6 +99,7 @@ const loadNotebooks = async () => {
             if (fsSync.existsSync(eznPath)) {
               const content = await fs.readFile(eznPath, 'utf-8')
               notebook = JSON.parse(content)
+              notebook.subject = subject
             } else {
               const pdfDate = await _getPdfDate(pdfPath)
               notebook = {
@@ -168,6 +169,7 @@ const loadNotebook = async (fileName, subject) => {
     if (eznPath) {
       const content = await fs.readFile(eznPath, 'utf-8')
       const notebook = JSON.parse(content)
+      notebook.subject = rootSubject
       if (pdfPath) {
         notebook.pdf = pdfPath
       }
@@ -211,7 +213,7 @@ const saveNotebook = async (notebook, fileName) => {
     } else {
       eznPath = path.join(subjectPath, `${finalFileName}.ezn`)
     }
-    const { pdf, ...notebookToSave } = notebook
+    const { pdf, subject, ...notebookToSave } = notebook
     await fs.writeFile(eznPath, JSON.stringify(notebookToSave, null, 2), 'utf-8')
     return { success: true, fileName: finalFileName }
   } catch (error) {
