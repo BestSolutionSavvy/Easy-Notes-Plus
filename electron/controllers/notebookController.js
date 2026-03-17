@@ -11,6 +11,17 @@ const _isValidDate = (dateString) => {
   return date instanceof Date && !isNaN(date.getTime())
 }
 
+// Helper function to calculate notebook type based on file structure
+const _calculateNotebookType = (hasPdf, hasEznFile) => {
+  if (hasPdf && hasEznFile) {
+    return 'full'
+  } else if (hasPdf) {
+    return 'pdf'
+  } else {
+    return 'simple'
+  }
+}
+
 // Helper function to extract date from PDF metadata
 const _getPdfDate = async (pdfPath) => {
   try {
@@ -112,6 +123,9 @@ const loadNotebooks = async () => {
               }
             }
             notebook.pdf = pdfPath
+            // Add notebook type
+            const hasEzn = fsSync.existsSync(eznPath)
+            notebook.type = _calculateNotebookType(true, hasEzn)
             // Only add notebook if it has a valid date
             if (_isValidDate(notebook.date)) {
               notebooks.push(notebook)
@@ -137,6 +151,8 @@ const loadNotebooks = async () => {
               const content = await fs.readFile(eznPath, 'utf-8')
               const notebook = JSON.parse(content)
               notebook.subject = subject
+              // Add notebook type (EZN file without PDF)
+              notebook.type = _calculateNotebookType(false, true)
               // Only add notebook if it has a valid date
               if (_isValidDate(notebook.date)) {
                 notebooks.push(notebook)
@@ -170,6 +186,8 @@ const loadNotebook = async (fileName, subject) => {
       const content = await fs.readFile(eznPath, 'utf-8')
       const notebook = JSON.parse(content)
       notebook.subject = rootSubject
+      const hasPdf = !!pdfPath
+      notebook.type = _calculateNotebookType(hasPdf, true)
       if (pdfPath) {
         notebook.pdf = pdfPath
       }
@@ -177,7 +195,7 @@ const loadNotebook = async (fileName, subject) => {
     }
     if (pdfPath) {
       const pdfDate = await _getPdfDate(pdfPath)
-      return {
+      const notebook = {
         name: fileName,
         subject: rootSubject,
         pdf: pdfPath,
@@ -186,6 +204,8 @@ const loadNotebook = async (fileName, subject) => {
         num_notebook_pages: 0,
         pages: [],
       }
+      notebook.type = _calculateNotebookType(true, false)
+      return notebook
     }
     throw new Error('Notebook not found')
   } catch (error) {

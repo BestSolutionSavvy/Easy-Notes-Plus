@@ -21,6 +21,7 @@ interface Notebook {
   last_page: number
   num_notebook_pages: number
   pages: Pages[]
+  type?: 'pdf' | 'simple' | 'full'
 }
 
 export type { Notebook }

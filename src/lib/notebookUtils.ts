@@ -80,3 +80,23 @@ export const deleteNotebook = async (fileName: string, subject: string): Promise
 export const getNotebookFileName = (notebook: Notebook): string => {
   return notebook.name
 }
+
+// Get gradient background based on notebook type
+export const getNotebookGradient = (type: 'pdf' | 'simple' | 'full' = 'simple'): string => {
+  const gradients: Record<'pdf' | 'simple' | 'full', string> = {
+    pdf: '[background:linear-gradient(90deg,_#ffcee9,_#ffe5f3_65.38%,_#fff3f9)]',
+    simple: '[background:linear-gradient(90deg,_#ced8ff,_#e5ebff_65.38%,_#f5f7ff)]',
+    full: '[background:linear-gradient(90deg,_#fff0ca,_#fff8e6_65.38%,_#fffcf5)]',
+  }
+  return gradients[type]
+}
+
+// Get button background based on notebook type
+export const getButtonsBackground = (type: 'pdf' | 'simple' | 'full' = 'simple'): string => {
+  const backgrounds: Record<'pdf' | 'simple' | 'full', string> = {
+    pdf: 'bg-pink-600',
+    simple: 'bg-blue-950',
+    full: 'bg-orangered-100',
+  }
+  return backgrounds[type]
+}
