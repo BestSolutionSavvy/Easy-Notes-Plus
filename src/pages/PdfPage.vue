@@ -45,7 +45,7 @@ const dragBox = computed(() => {
 })
 
 const currentPageData = computed(() =>
-  props.notebook?.pages?.find((p) => p.slide_number === props.currentPage),
+  props.notebook?.pages?.find((p) => p.page_number === props.currentPage),
 )
 
 const currentTextBoxes = computed(() => currentPageData.value?.text_boxes || [])
@@ -169,7 +169,6 @@ const saveHighlight = () => {
                   props.notebook.pages = props.notebook.pages || []
                   props.notebook.pages.push({
                     page_number: props.currentPage || 1,
-                    slide_number: props.currentPage || 1,
                     note_content: '',
                     text_boxes: [],
                     highlights: [],
@@ -225,7 +224,6 @@ const savePostIt = () => {
       if (!pageData) {
         pageData = {
           page_number: props.currentPage || 1,
-          slide_number: props.currentPage || 1,
           note_content: '',
           text_boxes: [],
           highlights: [],

@@ -8,7 +8,6 @@ interface Box {
 
 interface Pages {
   page_number: number
-  slide_number: number
   note_content: string
   text_boxes: Box[]
   highlights: Box[]

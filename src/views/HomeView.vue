@@ -66,7 +66,7 @@ const handleOpenNotebook = (notebook: Notebook) => {
   const pageIndex = notebook.last_page || 1
   currentNotebookPage.value = pageIndex
   currentPdfPage.value =
-    notebook.pages.find((p) => p.page_number === currentNotebookPage.value)?.slide_number ||
+    notebook.pages.find((p) => p.page_number === currentNotebookPage.value)?.page_number ||
     pageIndex
   saveNotebookToSession(notebook)
 }
@@ -83,7 +83,7 @@ const handleNavigateToPage = (pageNumber: number) => {
     currentNotebookPage.value = pageNumber
     const page = openedNotebook.value.pages.find((p) => p.page_number === pageNumber)
     if (page) {
-      currentPdfPage.value = page.slide_number
+      currentPdfPage.value = page.page_number
     } else {
       currentPdfPage.value = pageNumber
     }
@@ -99,7 +99,7 @@ const handlePageNext = () => {
         (p) => p.page_number === currentNotebookPage.value,
       )
       if (page) {
-        currentPdfPage.value = page.slide_number
+        currentPdfPage.value = page.page_number
       } else {
         currentPdfPage.value = currentPdfPage.value + 1
       }
@@ -115,7 +115,7 @@ const handlePagePrev = () => {
         (p) => p.page_number === currentNotebookPage.value,
       )
       if (page) {
-        currentPdfPage.value = page.slide_number
+        currentPdfPage.value = page.page_number
       } else {
         currentPdfPage.value = Math.max(1, currentPdfPage.value - 1)
       }
@@ -129,7 +129,7 @@ const handlePageGoto = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= maxPage) {
       currentPdfPage.value = pageNumber
       if (openedNotebook.value.pages) {
-        const page = openedNotebook.value.pages.find((p) => p.slide_number === pageNumber)
+        const page = openedNotebook.value.pages.find((p) => p.page_number === pageNumber)
         if (page) {
           currentNotebookPage.value = page.page_number
         } else {

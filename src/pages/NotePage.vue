@@ -32,7 +32,6 @@ const saveNote = () => {
     } else if (noteContent.value.trim()) {
       props.notebook.pages.push({
         page_number: props.currentPage,
-        slide_number: props.currentPage,
         note_content: noteContent.value,
         text_boxes: [],
         highlights: [],
