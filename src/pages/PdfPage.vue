@@ -24,6 +24,8 @@ const dragCurrentX = ref<number>(0)
 const dragCurrentY = ref<number>(0)
 const pageInputValue = ref<string>('')
 const isPageCopied = ref<boolean>(false)
+let currentPdfUrl: string | null = null
+let isComponentMounted = true
 
 interface Props {
   notebook?: Notebook | null
@@ -53,7 +55,20 @@ const currentTextBoxes = computed(() => currentPageData.value?.text_boxes || [])
 
 const currentHighlights = computed(() => currentPageData.value?.highlights || [])
 
-const pdfUrl = computed(() => (pdfFile.value ? URL.createObjectURL(pdfFile.value) : null))
+const pdfUrl = computed(() => {
+  if (!pdfFile.value) {
+    if (currentPdfUrl) {
+      URL.revokeObjectURL(currentPdfUrl)
+      currentPdfUrl = null
+    }
+    return null
+  }
+  if (currentPdfUrl) {
+    URL.revokeObjectURL(currentPdfUrl)
+  }
+  currentPdfUrl = URL.createObjectURL(pdfFile.value)
+  return currentPdfUrl
+})
 
 const pdfWidth = computed(() =>
   basePageWidth.value > 0 ? (basePageWidth.value * scale.value) / 100 : undefined,
@@ -296,19 +311,21 @@ const copyPageToClipboard = async () => {
       return
     }
     canvas.toBlob((blob) => {
-      if (blob) {
-        navigator.clipboard
-          .write([new ClipboardItem({ 'image/png': blob })])
-          .then(() => {
-            isPageCopied.value = true
-            setTimeout(() => {
+      if (!isComponentMounted || !blob) return
+      navigator.clipboard
+        .write([new ClipboardItem({ 'image/png': blob })])
+        .then(() => {
+          if (!isComponentMounted) return
+          isPageCopied.value = true
+          setTimeout(() => {
+            if (isComponentMounted) {
               isPageCopied.value = false
-            }, 1000)
-          })
-          .catch((err) => {
-            console.error('Failed to copy to clipboard:', err)
-          })
-      }
+            }
+          }, 1000)
+        })
+        .catch((err) => {
+          console.error('Failed to copy to clipboard:', err)
+        })
     }, 'image/png')
   } catch (err) {
     console.error('Error copying page:', err)
@@ -316,6 +333,8 @@ const copyPageToClipboard = async () => {
 }
 
 const loadPdfFile = async (notebook: Notebook | null | undefined) => {
+  if (!isComponentMounted) return
+
   if (!notebook || !notebook.subject) {
     pdfFile.value = null
     error.value = null
@@ -328,16 +347,23 @@ const loadPdfFile = async (notebook: Notebook | null | undefined) => {
   try {
     isLoading.value = true
     error.value = null
-    if (pdfUrl.value) {
-      URL.revokeObjectURL(pdfUrl.value)
-    }
+
     const fileName = getNotebookFileName(notebook)
-    pdfFile.value = await loadPdf(fileName, notebook.subject, notebook.pdf)
+    const loadedPdf = await loadPdf(fileName, notebook.subject, notebook.pdf)
+
+    // Check if component is still mounted and data hasn't changed
+    if (isComponentMounted && props.notebook === notebook) {
+      pdfFile.value = loadedPdf
+    }
   } catch (err) {
-    error.value = 'Failed to load PDF'
-    console.error('Error loading PDF:', err)
+    if (isComponentMounted) {
+      error.value = 'Failed to load PDF'
+      console.error('Error loading PDF:', err)
+    }
   } finally {
-    isLoading.value = false
+    if (isComponentMounted) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -350,14 +376,22 @@ watch(
 )
 
 onMounted(async () => {
+  isComponentMounted = true
   document.addEventListener('mousemove', handlePdfMouseMove)
   document.addEventListener('mouseup', handlePdfMouseUp)
 })
 
 onUnmounted(() => {
-  if (pdfUrl.value) {
-    URL.revokeObjectURL(pdfUrl.value)
+  isComponentMounted = false
+  isDragging.value = false
+
+  // Cleanup Object URLs
+  if (currentPdfUrl) {
+    URL.revokeObjectURL(currentPdfUrl)
+    currentPdfUrl = null
   }
+
+  // Cleanup event listeners
   document.removeEventListener('mousemove', handlePdfMouseMove)
   document.removeEventListener('mouseup', handlePdfMouseUp)
 })
