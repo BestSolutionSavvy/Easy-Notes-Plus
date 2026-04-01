@@ -23,6 +23,7 @@ const dragStartY = ref<number>(0)
 const dragCurrentX = ref<number>(0)
 const dragCurrentY = ref<number>(0)
 const pageInputValue = ref<string>('')
+const isPageCopied = ref<boolean>(false)
 
 interface Props {
   notebook?: Notebook | null
@@ -287,6 +288,33 @@ const deleteHighlight = (index: number) => {
   }
 }
 
+const copyPageToClipboard = async () => {
+  try {
+    const canvas = document.querySelector('.pdf-wrapper canvas') as HTMLCanvasElement
+    if (!canvas) {
+      alert('Could not capture PDF page')
+      return
+    }
+    canvas.toBlob((blob) => {
+      if (blob) {
+        navigator.clipboard
+          .write([new ClipboardItem({ 'image/png': blob })])
+          .then(() => {
+            isPageCopied.value = true
+            setTimeout(() => {
+              isPageCopied.value = false
+            }, 1000)
+          })
+          .catch((err) => {
+            console.error('Failed to copy to clipboard:', err)
+          })
+      }
+    }, 'image/png')
+  } catch (err) {
+    console.error('Error copying page:', err)
+  }
+}
+
 const loadPdfFile = async (notebook: Notebook | null | undefined) => {
   if (!notebook || !notebook.subject) {
     pdfFile.value = null
@@ -486,6 +514,7 @@ onUnmounted(() => {
         <div
           @click="toggleHighlightMode"
           class="flex items-center justify-center p-[0.25rem] rounded transition-all cursor-pointer"
+          title="Highlight text on PDF"
         >
           <svg
             width="17"
@@ -505,6 +534,7 @@ onUnmounted(() => {
         <div
           @click="togglePostItMode"
           class="flex items-center justify-center p-[0.25rem] rounded transition-all cursor-pointer"
+          title="Add sticky notes on PDF"
         >
           <svg
             width="14"
@@ -520,6 +550,26 @@ onUnmounted(() => {
               class="transition-colors duration-300"
             />
           </svg>
+        </div>
+        <div
+          class="flex items-center justify-center p-[0.25rem] rounded transition-all cursor-pointer"
+        >
+          <img
+            v-if="!isPageCopied"
+            src="../assets/copy.svg"
+            @click="copyPageToClipboard"
+            class="h-[0.938rem] w-[0.8rem] relative cursor-pointer transition-transform hover:scale-125 hover:brightness-125"
+            title="Copy page as PNG"
+            alt="Copy"
+          />
+          <img
+            v-else
+            src="../assets/clipboard-check.svg"
+            @click="copyPageToClipboard"
+            class="h-[0.938rem] w-[0.8rem] relative cursor-pointer transition-transform hover:scale-125 hover:brightness-125"
+            title="Copied page as PNG"
+            alt="Copied"
+          />
         </div>
       </div>
     </div>
