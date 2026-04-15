@@ -23,6 +23,7 @@ const dragStartY = ref<number>(0)
 const dragCurrentX = ref<number>(0)
 const dragCurrentY = ref<number>(0)
 const pageInputValue = ref<string>('')
+const zoomInputValue = ref<string>('')
 const isPageCopied = ref<boolean>(false)
 let currentPdfUrl: string | null = null
 let isComponentMounted = true
@@ -98,6 +99,18 @@ const handleDocumentRender = async (data: any) => {
 
 const fitToContainer = () => {
   scale.value = calculateFitToContainerScale(basePageWidth.value, basePageHeight.value, 40, 60)
+}
+
+const focusZoomInput = () => {
+  zoomInputValue.value = String(Math.round(scale.value))
+}
+
+const applyZoomInput = () => {
+  const value = Number.parseInt(zoomInputValue.value, 10)
+  if (!Number.isNaN(value)) {
+    scale.value = Math.min(500, Math.max(10, value))
+  }
+  zoomInputValue.value = ''
 }
 
 const handlePageInput = (event: Event) => {
@@ -508,7 +521,7 @@ onUnmounted(() => {
             @blur="pageInputValue = ''"
             @keyup.enter="handlePageInput"
             type="text"
-            class="w-12 text-center bg-transparent outline-none cursor-pointer text-gray-700 placeholder:text-gray-700"
+            class="w-12 text-center bg-transparent outline-none cursor-text text-gray-700 placeholder:text-gray-700"
             :placeholder="`${currentPage}/${totalPages}`"
           />
         </div>
@@ -528,7 +541,17 @@ onUnmounted(() => {
         <div
           class="rounded-[5px] bg-gray-100 overflow-hidden flex items-center justify-center py-[0.312rem] px-[0.625rem] cursor-pointer transition-all hover:bg-gray-200 hover:shadow-md"
         >
-          <div class="relative">{{ scale }}%</div>
+          <input
+            v-model="zoomInputValue"
+            @focus="focusZoomInput"
+            @blur="applyZoomInput"
+            @keyup.enter="applyZoomInput"
+            type="text"
+            inputmode="numeric"
+            class="w-8 text-center bg-transparent outline-none cursor-text text-gray-700 placeholder:text-gray-700"
+            :placeholder="`${Math.round(scale)}%`"
+            aria-label="Zoom percentage"
+          />
         </div>
         <img
           src="../assets/plus.svg"
@@ -590,9 +613,9 @@ onUnmounted(() => {
         >
           <img
             v-if="!isPageCopied"
-            src="../assets/copy.svg"
             @click="copyPageToClipboard"
-            class="h-[0.938rem] w-[0.8rem] relative cursor-pointer transition-transform hover:scale-125 hover:brightness-125"
+            src="../assets/copy.svg"
+            class="h-[0.938rem] w-full transition-transform hover:scale-125"
             title="Copy page as PNG"
             alt="Copy"
           />
@@ -600,7 +623,7 @@ onUnmounted(() => {
             v-else
             src="../assets/clipboard-check.svg"
             @click="copyPageToClipboard"
-            class="h-[0.938rem] w-[0.8rem] relative cursor-pointer transition-transform hover:scale-125 hover:brightness-125"
+            class="h-[0.938rem] w-full relative cursor-pointer transition-transform hover:scale-125 hover:brightness-125"
             title="Copied page as PNG"
             alt="Copied"
           />
