@@ -276,12 +276,14 @@ onUnmounted(() => {
         v-if="openedNotebook?.pdf"
         :notebook="openedNotebook"
         :currentPage="currentNotebookPage"
+        @page-goto="handlePageGoto"
       />
       <NotePage
         ref="notePageRightRef"
         v-else-if="openedNotebook && !openedNotebook.pdf"
         :notebook="openedNotebook"
         :currentPage="currentNotebookPage + 1"
+        @page-goto="handlePageGoto"
       />
       <div
         v-else

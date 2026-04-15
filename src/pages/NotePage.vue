@@ -13,6 +13,10 @@ const props = withDefaults(defineProps<Props>(), {
   currentPage: 0,
 })
 
+const emit = defineEmits<{
+  (e: 'page-goto', page: number): void
+}>()
+
 const noteContent = ref<string>('')
 const smartTextAreaRef = ref<InstanceType<typeof SmartTextArea> | null>(null)
 
@@ -77,6 +81,14 @@ onMounted(() => {
         <b class="relative">Notes for page {{ props.currentPage }}</b>
         <div class="h-[1.125rem] w-[0.313rem] relative overflow-hidden shrink-0" />
       </div>
+      <button
+        v-if="props.notebook?.last_page"
+        @click="emit('page-goto', props.notebook.last_page)"
+        class="px-[0.625rem] py-[0.312rem] rounded-[5px] text-black text-[0.7rem] font-small hover:bg-gray-200 cursor-pointer transition-colors"
+        title="Jump to last saved page"
+      >
+        -> {{ props.notebook.last_page }}
+      </button>
     </div>
     <SmartTextArea ref="smartTextAreaRef" v-model="noteContent" />
   </div>
